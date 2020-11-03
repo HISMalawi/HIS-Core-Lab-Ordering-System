@@ -1,0 +1,91 @@
+
+<!-- <script src="/assets/js/HighCharts/highcharts.js"></script>
+<script src="/assets/js/HighCharts/highcharts-3d.js"></script>
+<script src="/assets/js/HighCharts/exporting.js"></script>
+<script src="/assets/js/HighCharts/export-data.js"></script> -->
+
+<script src="/assets/js/jquery.min.js"></script> 
+<script src="../../../assets/js/datatables/datatables.js"></script>
+<link rel="stylesheet" type="text/css" href="../../../assets/css/datatables/jquery.dataTables.min.css"/>
+
+<script src="/assets/js/moment.js"></script>
+
+<script src="/assets/js/core.js"></script> 
+
+
+<style>
+
+#lab-stats-table {
+  width: 96%;
+}
+
+.stat-boxes {
+  background-color: #ccc;
+  text-align: right;
+}
+
+th {
+  padding-right: 15px;
+  height: 40px;
+  color: black;
+}
+</style>
+
+<div id='lab-stats'>
+
+<table id='lab-stats-table'>
+  <thead>
+    <tr class='stat-boxes'>
+      <th>Ordered</th>
+      <th>Rejected</th>
+      <th>Accepted</th>
+      <th>Processed</th>
+    </tr>
+  </thead>
+</table>
+
+
+</div>
+
+<script>
+
+function dashboardStats(stats) {
+  console.log(stats);
+}
+
+function fetchDashboardStats() {
+  var url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
+  url += "/dashboard_stats?date=" + sessionStorage.sessionDate;
+  url+= "&program_id=" + sessionStorage.programID;
+
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
+      var obj = JSON.parse(this.responseText);
+      dashboardStats(obj);
+    }
+  };
+  xhttp.open("GET", url, true);
+  xhttp.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+  xhttp.setRequestHeader('Content-type', "application/json");
+  xhttp.send();
+}
+
+var data_table;
+
+function initializeTable() {
+  data_table = $('#lab-stats-table').DataTable({
+      fixedHeader: true,
+      searching: false,
+      paging: false,
+      scrollY: 430,
+      scroller: {
+          loadingIndicator: true
+      }
+  });
+}
+
+setTimeout("fetchDashboardStats()", 200);
+initializeTable();
+</script>
+

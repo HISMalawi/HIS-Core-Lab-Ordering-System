@@ -1,0 +1,99 @@
+<style>
+* {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+#opd-identifiers {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#opd-identifiers th, #opd-identifiers td {
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+}
+
+#opd-identifiers th {
+  text-align: left;
+  padding-left: 5px;
+}
+
+#opd-identifiers td {
+  text-align: center;
+}
+
+</style>
+
+
+<script src="/assets/js/jquery.min.js"></script>
+<script src="/assets/js/moment.js"></script>
+<script src="/assets/js/core.js"></script>
+
+<script>
+
+
+function getMalawiID() {
+  
+  var url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
+  url += "/patient_identifiers?patient_id=" + sessionStorage.patientID;
+  url += "&identifier_type=28";
+  
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
+      var obj = JSON.parse(this.responseText);
+      if(obj.length > 0) 
+        document.getElementById('nid').innerHTML = obj[0].identifier;
+    
+    }
+  };
+  xhttp.open("GET", url, true);
+  xhttp.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+  xhttp.setRequestHeader('Content-type', "application/json");
+  xhttp.send();
+}
+
+
+function getHIVOPDstatus() {
+  
+  var url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
+  url += "/observations?person_id=" + sessionStorage.patientID;
+  url += "&concept_id=3753&page_size=1&date=";
+  url += moment(new Date(sessionStorage.sessionDate)).format("YYYY-MM-DD");
+  
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
+      var obj = JSON.parse(this.responseText);
+      if(obj.length > 0) 
+        document.getElementById('hiv-opd-status').innerHTML = obj[0].value_text;
+    
+    }
+  };
+  xhttp.open("GET", url, true);
+  xhttp.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+  xhttp.setRequestHeader('Content-type', "application/json");
+  xhttp.send();
+}
+
+
+setTimeout("getMalawiID()", 1000);
+setTimeout("getHIVOPDstatus()", 1000);
+</script>
+
+<table id="opd-identifiers">
+  <tr>
+    <th>Malawi National ID:</th>
+    <td id="nid">&nbsp;</td>
+  </tr>
+  <tr>
+    <th>HIV status:</th>
+    <td id="hiv-opd-status">&nbsp;</td>
+  </tr>
+</table>

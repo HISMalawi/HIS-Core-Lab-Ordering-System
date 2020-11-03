@@ -1,0 +1,101 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <script type="text/javascript" src="../../../public/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer="true"></script>
+    <!--script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/standard.js" defer="true"></script-->
+    <script type="text/javascript" src="../../../assets/js/jquery.min.js"></script>
+
+    <script type="text/javascript" src="../../../assets/js/post_parameters.js"></script>
+    <script type="text/javascript" src="../../../assets/js/generic_ajaxrequest.js"></script>
+    <script type="text/javascript" src="../../../assets/js/alertifyjs/alertify.js"></script>
+    <script type="text/javascript" src="../../../assets/js/does_connection_exist.js"></script>
+    <script type="text/javascript" src="../assets/js/new_order.js"></script>
+
+    <link rel="stylesheet" href="../../../assets/css/alertifyjs/css/alertify.css" type="text/css">
+
+    
+    <script type="text/javascript">
+      var patient_id = sessionStorage.patientID;
+      var tt_cancel_destination = "/views/patient_dashboard.html?patient_id=" + patient_id;
+
+      function fetchTest(){
+        var inputFrame = document.getElementById("inputFrame"  + tstCurrentPage);
+        inputFrame.style = "width: 95.5%; height: 90%; overflow: auto;";
+
+
+        getAvailableTests(inputFrame);
+      }
+
+
+    </script>
+
+    <style>
+      #tt_page_select_test .inputFrameClass {
+        width: 96%;
+      }
+
+      .test-table {
+        display: table;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 15px;
+        color: black;
+      }
+
+      .test-table-row {
+        display: table-row;
+      }
+
+      .test-table-cell {
+        display: table-cell;
+        border-style: solid;
+        border-width: 1px;
+        text-align: center;
+        line-height: 20px;
+        height: 50px;
+        padding: 10px;
+        box-shadow: 5px 10px #888888;
+        width: 150px;
+        text-align: center;
+        vertical-align: middle;
+        word-wrap: break-word;
+      }
+
+    </style>
+
+</head>
+
+<body id="mateme">
+  <div id="container">
+      <div id="content">
+  
+  
+          <form action="post">
+            <input type="text" name="select_test"
+              id="select_test" field_type="alpha"
+              helpText="Select test"
+              ajaxURL="/programs/1/lab_tests/types/?search_string="
+              key="select_test" />
+
+             <input id="summary" name="specimen" optional="true"
+             tt_onLoad="__$('keyboard').style.display = 'none'; fetchTest();"
+             helpText="Select specimen"
+             tt_pageStyleClass="NoControls" type="text"/>
+
+             <select allowFreeText="false" helpText="Reason for test"
+                id="reson_for_test" name="reason" tt_pageStyleClass="NoKeyboard">
+                <option value=''></option>
+                <option value="Routine">Routine</option>
+                <option value='Targeted'>Targeted</option>
+                <option value='Confirmatory'>Confirmatory</option>
+                <option value='Reapet / Missing'>Reapet / Missing</option>
+                <option value='Other'>Other</option>
+            </select>
+  
+          </form>
+  
+      </div>
+  </div>
+  </body>
+
+
+</html>
