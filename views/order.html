@@ -32,7 +32,7 @@
     </script>
 
     <style>
-      #tt_page_select_tests #clearButton {
+      #tt_page_select_tests #clearButton, .tt_controls_select_tests #clearButton {
         display: none;
       }
 
@@ -218,13 +218,21 @@
   
             <select type="text" name="test-summary" 
               tt_onLoad="__$('keyboard').style.display ='';loadSpecimen();" 
+              tt_onUnLoad="resetClearButton();"
               tt_pageStyleClass="NoControls" id="selected-specimen" 
               tt_onUnload="" helpText="Select specimen"></select>
 
              <input id="summary" name="specimen" optional="true"
              tt_onLoad="__$('keyboard').style.display = 'none'; fetchTests();"
-             helpText="Select tests"
+             helpText="Select tests" tt_onUnLoad="resetNextButton();"
              tt_pageStyleClass="NoControls" type="text"/>
+
+             <select allowFreeText="false" helpText="Combine test(s) in one order"
+                id="combine_test_in_order" name="reason" tt_pageStyleClass="NoKeyboard">
+                <option value=''></option>
+                <option value="Yes">Yes</option>
+                <option value='No'>No</option>
+            </select>
 
             <input type="text" name="summary" 
               tt_onLoad="__$('keyboard').style.display ='';loadPressedOrder();" 

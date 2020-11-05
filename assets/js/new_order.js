@@ -1,8 +1,12 @@
 
 
 function fetchTests() {
+
+  var nextButton = $("nextButton");
+  nextButton.setAttribute("onmousedown","validateSelectedTest();");
+
   let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
-  url += "/programs/1/lab_tests/types/?specimen_type=" + selectedTest;
+  url += "/programs/1/lab_tests/types?specimen_type=" + selectedTest;
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -14,8 +18,10 @@ function fetchTests() {
       let viral_load; let tests = [];
 
       for(let i = 0; i < obj.length; i++){
-        if(obj[i].name.match(/viral load/i))
+        if(obj[i].name.match(/viral load/i)){
           viral_load = obj[i];
+          continue;
+        }
 
          tests.push(obj[i]);
       }
@@ -76,9 +82,13 @@ function buildTestTable(tests, el){
     row.appendChild(cell);
     rowCount++;
 
-    //if(selectedTest == tests[i].name || selected_cat == tests[i].name)
-      //cell.setAttribute("style","background-color: lightblue;");
-
+  }
+  
+  for(let concept_id in selected_tests){
+    let e = $(concept_id);
+    let img = $(`checkbox-${concept_id}`);
+    img.setAttribute("src","../assets/images/checkmark.png");
+    e.setAttribute("style","background-color: lightblue;");
   }
 }
 
@@ -107,16 +117,21 @@ function selectTest(e){
       if(parseInt(concept_id) == parseInt(e.id))
         continue;
 
-      selected_tests[concept_id] = st[concept_id];
+      selected_tests[concept_id] = st[concept_id].name;
     }
   }else{
     e.setAttribute("style","background-color: lightblue;");
     let img = document.getElementById(`checkbox-${e.id}`);
     img.setAttribute("src","../assets/images/checkmark.png");
-    selected_tests[e.id] = e.concept_name;
+    selected_tests[e.id] = e.getAttribute("concept_name");
   }
   
   
+}
+
+function resetClearButton(){
+  let clearButton = $("clearButton");
+  clearButton.setAttribute("onmousedown","clearInput();")
 }
 
 function loadSpecimen(){
@@ -273,6 +288,7 @@ function validateInput(){
   for(let i = 0; i < lists.length; i++){
     if(lists[i].getAttribute("tstvalue").toLowerCase() == inputBox.value.toLowerCase()){
       selectedTest = inputBox.value;
+      selected_tests = {};
       gotoNextPage();
       return;
     }
@@ -284,7 +300,12 @@ function validateInput(){
 function loadPressedOrder(){
   var el = document.getElementById("inputFrame"  + tstCurrentPage);
   el.style = "width: 95.5%; overflow: auto;";
-  
+  let selected_text_html = [];
+
+  for(let concept_id in selected_tests){
+    selected_text_html.push(selected_tests[concept_id]);
+  }
+
   el.innerHTML = `
   <table id="confirmation-table">
     <thead>
@@ -295,7 +316,7 @@ function loadPressedOrder(){
     </theade>
     <tbody>
       <tr>
-        <td class="indicators">Clinician</td>
+        <td class="indicators">Ordering Clinician</td>
         <td id="ordering-clinician">
           ${$("given_name").value} ${$("family_name").value}
         </td>
@@ -320,7 +341,13 @@ function loadPressedOrder(){
       </tr>
       <tr>
         <td class="indicators">Test(s)</td>
-        <td id="ordering-tests"></td>
+        <td id="ordering-tests">
+          ${selected_text_html.join("<br />")}
+        </td>
+      </tr>
+      <tr>
+        <td class="indicators">Combine Test(s) in  one order</td>
+        <td id="ordering-tests">${$("combine_test_in_order").value}</td>
       </tr>
     </tbody>
   </table>`;
@@ -344,6 +371,20 @@ function getLocations() {
   xhttp.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
   xhttp.setRequestHeader('Content-type', "application/json");
   xhttp.send();
+}
+
+function validateSelectedTest(){
+  if(Object.keys(selected_tests).length < 1){
+    showMessage("Please select test(s) to continue.");
+    return;
+  }
+
+  gotoNextPage();  
+}
+
+function resetNextButton(){
+  let nextButton = $("nextButton");
+  nextButton.setAttribute("onmousedown","gotoNextPage();");
 }
 
 getLocations();
