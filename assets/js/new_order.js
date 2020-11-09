@@ -109,13 +109,13 @@ function selectTest(e){
     let img = $(`checkbox-${e.id}`);
     img.setAttribute("src","../assets/images/stop.png");
 
-    let st = selected_tests;
+    let selected_test_before = selected_tests;
     selected_tests  = {}
-    for(let concept_id in st){
+    for(let concept_id in selected_test_before){
       if(parseInt(concept_id) == parseInt(e.id))
         continue;
 
-      selected_tests[concept_id] = st[concept_id].name;
+      selected_tests[concept_id] = selected_test_before[concept_id];
     }
   }else{
     e.setAttribute("style","background-color: lightblue;");
