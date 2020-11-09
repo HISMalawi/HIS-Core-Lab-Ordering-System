@@ -86,9 +86,7 @@ function buildTestTable(tests, el){
   
   for(let concept_id in selected_tests){
     let e = $(concept_id);
-    let img = $(`checkbox-${concept_id}`);
-    img.setAttribute("src","../assets/images/checkmark.png");
-    e.setAttribute("style","background-color: lightblue;");
+    selectTest(e);
   }
 }
 
@@ -306,6 +304,9 @@ function loadPressedOrder(){
     selected_text_html.push(selected_tests[concept_id]);
   }
 
+  let nextButton = $("nextButton");
+  nextButton.setAttribute("onmousedown","submitOrder();");
+
   el.innerHTML = `
   <table id="confirmation-table">
     <thead>
@@ -385,6 +386,14 @@ function validateSelectedTest(){
 function resetNextButton(){
   let nextButton = $("nextButton");
   nextButton.setAttribute("onmousedown","gotoNextPage();");
+}
+
+function submitOrder(){
+  let clinician_name = `${$("given_name").value} ${$("family_name").value}`;
+  let ordering_loc = `${all_locations[parseInt($("location_name").value)]}`;
+  let orderiing_reason = $("reson_for_test").value;
+  let combine_test_in_order = $("combine_test_in_order").value;
+
 }
 
 getLocations();

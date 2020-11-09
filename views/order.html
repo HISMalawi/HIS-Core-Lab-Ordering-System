@@ -207,12 +207,13 @@
                    name="facility_name"></select>
 
              <select allowFreeText="false" helpText="Reason for test"
+                tt_onLoad="resetClearButton();"
                 id="reson_for_test" name="reason" tt_pageStyleClass="NoKeyboard">
                 <option value=''></option>
                 <option value="Routine">Routine</option>
                 <option value='Targeted'>Targeted</option>
                 <option value='Confirmatory'>Confirmatory</option>
-                <option value='Reapet / Missing'>Reapet / Missing</option>
+                <option value='Repeat / Missing'>Repeat / Missing</option>
                 <option value='Other'>Other</option>
             </select>
   
@@ -236,7 +237,8 @@
 
             <input type="text" name="summary" 
               tt_onLoad="__$('keyboard').style.display ='';loadPressedOrder();" 
-              tt_pageStyleClass="NoControls" 
+              tt_pageStyleClass="NoControls"
+              tt_onUnLoad="resetNextButton();" 
               tt_onUnload="" helpText="Confirmation" />
 
           </form>
