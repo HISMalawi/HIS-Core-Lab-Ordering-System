@@ -278,6 +278,7 @@ function autoSelectRow(){
 }
 
 var selectedTest = "";
+let selectedTextHtml = [];
 
 function validateInput(){
   let inputBox = $("select_test_input");
@@ -298,10 +299,10 @@ function validateInput(){
 function loadPressedOrder(){
   var el = document.getElementById("inputFrame"  + tstCurrentPage);
   el.style = "width: 95.5%; overflow: auto;";
-  let selected_text_html = [];
+  // let selected_text_html = [];
 
   for(let concept_id in selected_tests){
-    selected_text_html.push(selected_tests[concept_id]);
+    selectedTextHtml.push(selected_tests[concept_id]);
   }
 
   let nextButton = $("nextButton");
@@ -343,7 +344,7 @@ function loadPressedOrder(){
       <tr>
         <td class="indicators">Test(s)</td>
         <td id="ordering-tests">
-          ${selected_text_html.join("<br />")}
+          ${selectedTextHtml.join("<br />")}
         </td>
       </tr>
       <tr>
@@ -391,8 +392,21 @@ function resetNextButton(){
 function submitOrder(){
   let clinician_name = `${$("given_name").value} ${$("family_name").value}`;
   let ordering_loc = `${all_locations[parseInt($("location_name").value)]}`;
-  let orderiing_reason = $("reson_for_test").value;
+  let ordering_reason = $("reson_for_test").value;
   let combine_test_in_order = $("combine_test_in_order").value;
+  let specimen_selected = `${selectedTest}`;
+  let tests_selected = `${selected_text_html.join("<br />")}`;
+
+  let submitOrderHash = {
+    clinicianName: clinician_name,
+    orderingLoc: ordering_loc,
+    orderingReason: ordering_reason,
+    combineTestInOrder: combine_test_in_order,
+    specimen: specimen_selected,
+    tests: tests_selected
+  }
+
+  console.log(submitOrderHash);
 
 }
 
