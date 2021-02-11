@@ -8,10 +8,11 @@
     <script type="text/javascript" src="../../../assets/js/generic_ajaxrequest.js"></script>
     <script type="text/javascript" src="../../../assets/js/alertifyjs/alertify.js"></script>
     <!--script type="text/javascript" src="../../../assets/js/does_connection_exist.js"></script-->
+    <script type="text/javascript" src="../assets/js/new_order.js"></script>
     <script type="text/javascript" src="../../../assets/js/moment.js"></script>
 
     <link rel="stylesheet" href="../../../assets/css/alertifyjs/css/alertify.css" type="text/css">
-    <script type="text/javascript" src="../assets/js/new_order.js"></script>
+
     
     <script type="text/javascript">
       var patient_id = sessionStorage.patientID;
@@ -32,6 +33,14 @@
     </script>
 
     <style>
+      #tt_page_select_tests #clearButton, .tt_controls_select_tests #clearButton {
+        display: none;
+      }
+
+      #tt_page_confirmation #clearButton, .tt_controls_confirmation #clearButton {
+        display: none;
+      } 
+      
       .tt_controls_select_specimen #clearButton {
         display: inline;
       }
@@ -44,102 +53,11 @@
         width: 96%;
       }
 
-
-
-
-
-
-
-
-      #confirmation-table  {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-        font-size: 22px;
-        font-weight: 400;
-        line-height: 1.5;
-        color: #212529;
+      #tt_page_select_tests .inputFrameClass {
+        width: 96%;
+        height: 90%;
+        overflow: auto;
       }
-      
-      #confirmation-table  th, #confirmation-table td {
-        text-align: left;
-        padding-left: 10px;
-      }
-
-      .indicators {
-        width: 35%;
-      }
-
-      #confirmation-table td {
-        border-style: solid;
-        border-width: 1px 0px 0px 0px;
-      }
-
-      .concept-names {
-        padding-left: 10px;
-      }
-
-      .check-boxes {
-        border-right-style: solid;
-        border-right-width: 1px;
-        padding-right: 10px;
-      }
-
-      .checkbox-icons  {
-        width: 14px;
-        height: 14px;
-      } 
-      #confirmation-table  th, #confirmation-table td {
-        text-align: left;
-        padding-left: 10px;
-      }
-
-      .indicators {
-        width: 35%;
-      }
-
-      #confirmation-table td {
-        border-style: solid;
-        border-width: 1px 0px 0px 0px;
-      }
-
-      .concept-names {
-        padding-left: 10px;
-      }
-
-      .check-boxes {
-        border-right-style: solid;
-        border-right-width: 1px;
-        padding-right: 10px;
-      }
-
-      .checkbox-icons  {
-        width: 14px;
-        height: 14px;
-      } 
-
-      ul {
-        margin-top: 5px;
-        margin-bottom: 5px;
-        padding-left: 0px;
-      }
-
-      li {
-        color: black;
-        list-style: none;
-        padding-left: 5px;
-        padding-right: 5px;
-        margin-top: 5px;
-        margin-bottom: 5px;
-        font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
-        font-size: 2.2em;
-      }
-
-
-
-
-
-
 
       .test-table {
         display: table;
@@ -194,23 +112,97 @@
         width: 98.5%;
       }
 
-      #tt_page_select_tests #clearButton, .tt_controls_select_tests #clearButton {
-        display: none;
-      } 
+      #available-tests-keyboard {
+        position: absolute;
+        display: block;
+        z-index: 10;
+        bottom: 50px;
+        left: 25px;
+        border: 1px solid #333;
+        border-radius: 15px;
+        padding: 5px;
+        background-color: #fff;
+        width: 95%;
+      }
 
-      #tt_page_confirmation #clearButton, .tt_controls_confirmation #clearButton {
-        display: none;
-      } 
+      ul {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding-left: 0px;
+      }
 
+      li {
+        color: black;
+        list-style: none;
+        padding-left: 5px;
+        padding-right: 5px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
+        font-size: 2.2em;
+      }
+
+      #confirmation-table  {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+      }
+      
+      #confirmation-table  th, #confirmation-table td {
+        text-align: left;
+        padding-left: 10px;
+      }
+
+      .indicators {
+        width: 35%;
+      }
+
+      #confirmation-table td {
+        border-style: solid;
+        border-width: 1px 0px 0px 0px;
+      }
+
+      .concept-names {
+        padding-left: 10px;
+      }
+
+      .check-boxes {
+        border-right-style: solid;
+        border-right-width: 1px;
+        padding-right: 10px;
+      }
+
+      .checkbox-icons  {
+        width: 14px;
+        height: 14px;
+      }
+
+      /*#report-cover {
+        position: absolute;
+        background-color: black;
+        width: 100%;
+        height: 102%;
+        left: 0%;
+        top: 0%;
+        z-index: 990;
+        opacity: 0.65;
+        display: none;
+      }
+
+      #spinner {
+        position: absolute;
+        top: 150px;
+        left: 40%;
+        z-index: 991;
+        display: none;
+      }*/
     </style>
 
-
-
-
 </head>
-
-
-
 
 <body id="mateme">
   <div id="container">
@@ -219,7 +211,7 @@
   
           <form action="post">
 
-            <!--input type="text" name="given_name"
+            <input type="text" name="given_name"
                    id="given_name" field_type="alpha"
                    key="given_name" helpText="Requesting clinician - First name"
                    ajaxURL="/search/given_name?search_string="
@@ -229,7 +221,7 @@
                    id="family_name" field_type="alpha"
                    helpText="Requisting clinician - Last name"
                    ajaxURL="/search/family_name?search_string="
-                   allowFreeText="true"/-->
+                   allowFreeText="true"/>
             
             <select objectType="location" ajaxURL="/locations?name="
                    allowFreeText="true"
@@ -250,26 +242,26 @@
                 <option value='Other'>Other</option>
             </select>
   
-            <!--select type="text" name="test-summary" 
+            <select type="text" name="test-summary" 
               tt_onLoad="__$('keyboard').style.display ='';loadSpecimen();" 
               tt_onUnLoad="resetClearButton();"
               tt_pageStyleClass="NoControls" id="selected-specimen" 
-              tt_onUnload="" helpText="Select specimen"></select-->
+              tt_onUnload="" helpText="Select specimen"></select>
 
              <input id="summary" name="specimen" optional="true"
              tt_onLoad="__$('keyboard').style.display = 'none'; fetchTests();"
              helpText="Select tests" tt_onUnLoad="resetNextButton();"
              tt_pageStyleClass="NoControls" type="text"/>
 
-             <!--select allowFreeText="false" helpText="Combine test(s) in one order"
+             <select allowFreeText="false" helpText="Combine test(s) in one order"
                 id="combine_test_in_order" name="reason" tt_pageStyleClass="NoKeyboard">
                 <option value=''></option>
                 <option value="Yes">Yes</option>
                 <option value='No'>No</option>
-            </select-->
+            </select>
 
             <input type="text" name="summary" 
-              tt_onLoad="__$('keyboard').style.display ='';loadOrder();" 
+              tt_onLoad="__$('keyboard').style.display ='';loadPressedOrder();" 
               tt_pageStyleClass="NoControls"
               tt_onUnLoad="resetNextButton();" 
               tt_onUnload="" helpText="Confirmation" />

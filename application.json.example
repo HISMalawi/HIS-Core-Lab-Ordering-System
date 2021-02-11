@@ -2,10 +2,10 @@
   "encounters": {
    "Order": {
       "available": true,
-      "activitiesIcon": "/assets/images/order.png",
+      "activitiesIcon": "/assets/images/social_history.png",
       "url": "/apps/LOS/views/order.html"
     },
-   "Draw": {
+   "Draw sample": {
       "available": true,
       "activitiesIcon": "/assets/images/hts.png",
       "url": "/apps/LOS/views/draw.html"

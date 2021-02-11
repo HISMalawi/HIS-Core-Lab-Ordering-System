@@ -1,0 +1,158 @@
+<html>
+
+<head>
+  <style>
+    #orders-table {
+      width: 700px;
+    }
+
+    #orders-table_wrapper {
+      width: 100%;
+    }
+    
+    .accession-numbers-col {
+      text-align: left;
+      width: 20%;
+    }
+
+    .specimen-col {
+      text-align: left;
+    }
+
+    .tests-col {
+      text-align: left;
+      width: 20%;
+    }
+
+    .round-btns {
+      border-radius: 50%;
+      height: 13vh;
+      border-color: black;
+      border-width: 2px;
+      font-weight: bolder;
+    }
+
+    .void-btns {
+      background-color: tomato;
+      color: white;
+      font-size: 35px;
+    }
+  </style>
+
+  <link rel="stylesheet" href="/../../assets/css/datatables/jquery.dataTables.min.css" type="text/css">
+
+
+  <script type="text/javascript" src="/../../assets/js/jquery.min.js"></script>
+  <script type="text/javascript" src="/../../assets/js/moment.js"></script>
+  
+  <script type="text/javascript" src="/../../assets/js/datatables/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="/../../assets/js/datatables/dataTables.fixedHeader.min.js"></script>
+
+<body>
+
+  <table id="orders-table" class="order-tables">
+    <thead>
+      <tr>
+        <th>Accession#</th>
+        <th>Test</th>
+        <th>Reason for test</th>
+        <th>&nbsp;</th>
+        <th>&nbsp;</th>
+      </tr>
+    </thead>
+  </table>
+
+</body>
+
+<script>
+  function fetchLabOrders(setDate){
+    let url = sessionStorage.apiProtocol+ '://' + sessionStorage.apiURL + ':' 
+    url += sessionStorage.apiPort + '/api/v1/lab/orders?patient_id=';
+    url += sessionStorage.patientID  + "&status=ordered";
+    url += "&date=" + setDate;
+
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+              let orders = JSON.parse(this.responseText); 
+              renderData(orders);
+            }
+        }
+    };
+
+    req.open("GET", url, true);
+    req.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+    req.setRequestHeader('Content-type', "application/json");
+    req.send(); 
+}
+
+function renderData(orders) {
+  dataTable.clear();
+
+  for(let i = 0; i < orders.length; i++){
+    //console.log(orders[i]);
+    let accession_number = orders[i].accession_number;
+    let requesting_clinician  = orders[i].requesting_clinician;
+    let tests = orders[i].tests;
+    let reason_for_test = orders[i].reason_for_test.name;
+    let order_id = orders[i].order_id;
+
+    console.log(orders[i].tests);
+  
+    for(let t = 0; t < tests.length; t++){
+      dataTable.row.add([accession_number, tests[t].name, reason_for_test, 
+          addDrawBTN(`${accession_number}`), addVoidBTN(order_id)]).draw();
+    }
+  }
+
+}
+
+function addDrawBTN(order_id){
+  return `<button class="round-btns" 
+    onmousedown="drawOrder('${order_id}');">Draw</button>`;
+}
+
+function addVoidBTN(order_id){
+  return `<button class="round-btns void-btns" 
+    onmousedown="voidOrder(${order_id});">X</button>`;
+}
+
+function drawOrder(order_id){
+  window.parent.location.href = `append_specimen.html?accession_number=${order_id}`;
+}
+
+function voidOrder(order_id){
+
+}
+
+let dataTable;
+
+function initDataTable(){
+  dataTable = jQuery('#orders-table').DataTable( {
+    fixedHeader:    true,
+    searching:      false,
+    deferRender:    true,
+    scrollCollapse: false,
+    scroller:       false,
+    lengthChange:   false,
+    paging:         false,
+    columnDefs: [
+      {"className": "accession-numbers-col", "targets": 0},
+      {"className": "specimen-col", "targets": 1},
+      {"className": "tests-col", "targets": 2}
+    ]
+  });
+}
+
+function testFetch(passedDate){
+  console.log(passedDate);
+}
+
+
+initDataTable();
+fetchLabOrders(sessionStorage.sessionDate);
+
+</script>
+
+</html>
