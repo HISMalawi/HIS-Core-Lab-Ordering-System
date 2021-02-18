@@ -1,0 +1,35 @@
+#tt_page_select_specimen #clearButton, .tt_controls_select_specimen #clearButton {
+  display: none;
+}
+
+#tt_page_confirmation #clearButton, .tt_controls_confirmation #clearButton {
+  display: none;
+} 
+
+#report-cover {
+  position: absolute;
+  background-color: black;
+  width: 100%;
+  height: 102%;
+  left: 0%;
+  top: 0%;
+  z-index: 990;
+  opacity: 0.65;
+  display: inline;
+}
+
+#spinner {
+  position: absolute;
+  top: 150px;
+  left: 40%;
+  z-index: 991;
+  display: inline;
+}
+
+fieldset > legend {
+  font-size: 16pt;
+}
+
+.disabled {
+  text-decoration: line-through;
+}
