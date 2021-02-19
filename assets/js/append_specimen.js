@@ -139,7 +139,6 @@ function loadSpecimenInputHandlers() {
 function loadSubmitFormHandlers() {
   const nextButton = document.querySelector('#nextButton');
   nextButton.setAttribute('onmousedown', '');
-
   nextButton.addEventListener('mousedown', async function(_event) {
     try {
       const specimenId = getSelectedSpecimen();
@@ -156,6 +155,12 @@ function loadSubmitFormHandlers() {
       console.error(exception);
       showMessage(exception.message);
     }
+  });
+  
+  const cancelButton = document.querySelector('#cancelButton');
+  cancelButton.setAttribute('onmousedown', '');
+  cancelButton.addEventListener('mousedown', function(_event) {
+    window.location.href = `/views/patient_dashboard.html?patient_id=${sessionStorage.patientID}`;
   });
 }
 
