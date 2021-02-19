@@ -90,6 +90,17 @@ const Utils = (function () {
     
     return `API Error - ${message}`;
   }
+  
+  function flashErrorAndRedirectToHome(message) {
+    // TODO: Replace the console.error below with some kind of notification
+    // and redirect to home.
+    console.error(message);
+    if (sessionStorage.patientID) {
+      window.location.href = `/views/patient_dashboard.html?patient_id=${sessionStorage.patientID}`;
+    } else {
+      window.location.href = `/index.html`;
+    }
+  }
 
   function expandApiPath(path) {
     const { protocol, host, port } = apiConfig();
@@ -115,6 +126,7 @@ const Utils = (function () {
     arrayCompact,
     arrayDifference,
     arrayIntersection,
+    flashErrorAndRedirectToHome,
     formatApiError,
     queryParams,
     zipArrays

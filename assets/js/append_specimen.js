@@ -37,7 +37,13 @@ async function findPotentialSpecimens(tests) {
   let incompatibleSpecimens = specimensForTests.flatMap(specimens => {
     return Utils.arrayDifference(compareSpecimens, specimens, compatibleSpecimens)
   });
-  incompatibleSpecimens = Utils.arrayCompact(({concept_id}) => concept_id,  incompatibleSpecimens);
+  incompatibleSpecimens = Utils.arrayCompact(({concept_id}) => concept_id,  incompatibleSpecimens)
+                               .map(specimen => {
+                                  return {
+                                    specimen,
+                                    incompatibleTest: findIncompatibleTest(specimen, tests, specimensForTests)
+                                  }
+                               });
   
   return {compatibleSpecimens, incompatibleSpecimens};
 }
@@ -54,6 +60,16 @@ async function getSpecimensForTest(test) {
 }
 
 const compareSpecimens = (specimenA, specimenB) =>  specimenA.concept_id === specimenB.concept_id;
+
+function findIncompatibleTest(specimen, tests, specimenGroups) {
+  for (const [test, specimens] of Utils.zipArrays(tests, specimenGroups)) {
+    if (!specimens.find(testSpecimen => testSpecimen.concept_id === specimen.concept_id)) {
+      return test;
+    }
+  }
+
+  return null;
+}
 
 function updateView({tests, compatibleSpecimens, incompatibleSpecimens}) {
   console.log({compatibleSpecimens, incompatibleSpecimens});
@@ -74,14 +90,14 @@ function SpecimenSelect(label, compatibleSpecimens, incompatibleSpecimens) {
     <fieldset>
       <legend>${label}</legend>
       ${compatibleSpecimens.map(specimen => SpecimenOption(specimen)).join('')}
-      ${incompatibleSpecimens.map(specimen => SpecimenOption(specimen, {disabled: true})).join('')}
+      ${incompatibleSpecimens.map(({specimen, incompatibleTest}) => SpecimenOption(specimen, {incompatibleTest})).join('')}
     </fieldset>
   `
 }
 
-function SpecimenOption(specimen, {disabled} = {}) {
+function SpecimenOption(specimen, {incompatibleTest} = {}) {
   const {concept_id, name} = specimen;
-  disabled ||= false;
+  incompatibleTest ||= false;
 
   return `
     <div>
@@ -90,9 +106,10 @@ function SpecimenOption(specimen, {disabled} = {}) {
              type="checkbox"
              class="specimen-option"
              name="${name}"
-             ${disabled ? 'disabled' : ''}>
+             ${incompatibleTest ? 'disabled' : ''}>
       <label for="specimen-option-${concept_id}">
-        <span ${disabled ? 'class="disabled"' : ''}>${name}</span>${disabled ? '[Incompatible with some of the selected tests]' : ''}
+        <span ${incompatibleTest ? 'class="disabled"' : ''}>${name}</span>
+        ${incompatibleTest ? `[Incompatible with ${incompatibleTest.name}]` : ''}
       </label>
     </div>
   `;
