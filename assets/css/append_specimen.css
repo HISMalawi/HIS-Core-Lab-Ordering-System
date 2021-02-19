@@ -27,9 +27,24 @@
 }
 
 fieldset > legend {
-  font-size: 16pt;
+  font-size: 20pt;
 }
 
 .disabled {
   text-decoration: line-through;
+}
+
+input.specimen-option {
+  -moz-transform: scale(1.5); /* FF */
+  -webkit-transform: scale(1.5); /* Safari and Chrome */
+  transform: scale(1.5);
+  padding: 10px;
+}
+
+label {
+  font-size: 16pt;
+}
+
+.specimen-input-group {
+  margin: 20px;
 }

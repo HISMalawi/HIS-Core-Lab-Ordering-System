@@ -100,7 +100,7 @@ function SpecimenOption(specimen, {incompatibleTest} = {}) {
   incompatibleTest ||= false;
 
   return `
-    <div>
+    <div class="specimen-input-group">
       <input id="specimen-option-${concept_id}"
              data-specimen-id="${concept_id}"
              type="checkbox"
