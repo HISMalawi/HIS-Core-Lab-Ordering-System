@@ -1,33 +1,24 @@
+// require('utils')
 
-
-function fetchTests() {
-
+async function fetchTests() {
   var nextButton = $("nextButton");
   nextButton.setAttribute("onmousedown","validateSelectedTest();");
-
-  let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
-  url += "/programs/1/lab_tests/types?specimen_type=" + selectedTest;
+  
+  let url = Utils.expandApiPath(`lab/test_types`);
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
-      var obj = JSON.parse(this.responseText);
-      var el = document.getElementById("inputFrame"  + tstCurrentPage);
+      let tests = JSON.parse(this.responseText);
+      let el = document.getElementById("inputFrame"  + tstCurrentPage);
       el.style = "width: 95.5%; height: 90%; overflow: auto;";
       el.innerHTML = null;
-      let viral_load; let tests = [];
+      
+      const viralLoadIndex = tests.findIndex(({name}) => name.match(/Viral load/i));
+      const viralLoad = viralLoadIndex >= 0 ? tests.splice(viralLoadIndex, 1)[0] : null;
 
-      for(let i = 0; i < obj.length; i++){
-        if(obj[i].name.match(/viral load/i)){
-          viral_load = obj[i];
-          continue;
-        }
-
-         tests.push(obj[i]);
-      }
-
-      if(viral_load != undefined)
-        tests.splice(0,0,viral_load);
+      tests = tests.sort((test1, test2) => test1.name > test2.name);
+      if (viralLoad) tests.unshift(viralLoad);
 
       buildTestTable(tests, el);
     }
@@ -435,8 +426,8 @@ function createOrderObj(encounter, order_obj, tests, combine_tests) {
         {
           "encounter_id": encounter.encounter_id,
           "specimen": {
-          "concept_id": order_obj.specimen_id
-        },
+            "concept_id": order_obj.specimen_id
+          },
           "tests": tests,
           "requesting_clinician": order_obj.clinician_name,
           "target_lab": order_obj.ordering_location,
@@ -483,40 +474,35 @@ function postOrder(orders){
 
 }
 
+async function submitIncompleteOrder(encounter) {
+  const requesting_clinician = sessionStorage.username;
+  const target_lab = all_locations[parseInt($("location_name").value)];
+  const ordering_reason = await Utils.getConceptByName($("reson_for_test").value);
+  const tests = Object.keys(selected_tests).map(concept_id => ({concept_id}));
 
-
-
-
-
-
-
-
-
-
-function submitIncompleteOrder(encounter) {
-  let clinician_name = sessionStorage.username;
-  let ordering_loc = `${all_locations[parseInt($("location_name").value)]}`;
-  let ordering_reason = $("reson_for_test").value;
-  let selected_tests_concept_ids = [];
-
-
-  for(concept_id  in selected_tests){
-    selected_tests_concept_ids.push({concept_id: concept_id});
-  }
-
-  let order_param = {
-    "orders": [
+  let orders;
+  
+  if ($('combine_tests_in_one_order').value.match(/Yes/i)) {
+    orders = [
       {
-        "encounter_id": encounter.encounter_id,
-        "tests": selected_tests_concept_ids,
-        "requesting_clinician": clinician_name,
-        "target_lab": ordering_loc,
-        "reason_for_test_id": 432
+        encounter_id: encounter.encounter_id,
+        reason_for_test_id: ordering_reason.concept_id,
+        requesting_clinician,
+        target_lab,
+        tests
       }
-    ]
+    ];
+  } else {
+    orders = tests.map(test => ({
+      encounter_id: encounter.encounter_id,
+      reason_for_test_id: ordering_reason.concept_id,
+      requesting_clinician,
+      target_lab,
+      tests: [test]
+    }));
   }
 
-  postOrder(order_param);
+  postOrder({orders});
 }
 
 function loadOrder(){
@@ -538,7 +524,7 @@ function loadOrder(){
         <th class="indicators">Indicator</th>
         <th>Value</th>
       </tr>
-    </theade>
+    </thead>
     <tbody>
       <tr>
         <td class="indicators">Ordering provider username</td>

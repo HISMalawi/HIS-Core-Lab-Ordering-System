@@ -11,6 +11,7 @@
     <script type="text/javascript" src="../../../assets/js/moment.js"></script>
 
     <link rel="stylesheet" href="../../../assets/css/alertifyjs/css/alertify.css" type="text/css">
+    <script type="text/javascript" src="../assets/js/utils.js"></script>
     <script type="text/javascript" src="../assets/js/new_order.js"></script>
     
     <script type="text/javascript">
@@ -261,12 +262,12 @@
              helpText="Select tests" tt_onUnLoad="resetNextButton();"
              tt_pageStyleClass="NoControls" type="text"/>
 
-             <!--select allowFreeText="false" helpText="Combine test(s) in one order"
-                id="combine_test_in_order" name="reason" tt_pageStyleClass="NoKeyboard">
+             <select allowFreeText="false" helpText="Combine test(s) in one order"
+                id="combine_tests_in_one_order" name="reason" tt_pageStyleClass="NoKeyboard">
                 <option value=''></option>
                 <option value="Yes">Yes</option>
                 <option value='No'>No</option>
-            </select-->
+            </select>
 
             <input type="text" name="summary" 
               tt_onLoad="__$('keyboard').style.display ='';loadOrder();" 
