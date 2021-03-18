@@ -92,22 +92,18 @@
 
     function renderData(orders) {
       dataTable.clear();
-
-      for(let i = 0; i < orders.length; i++){
-        //console.log(orders[i]);
-        let accession_number = orders[i].accession_number;
-        let requesting_clinician  = orders[i].requesting_clinician;
-        let tests = orders[i].tests;
-        let reason_for_test = orders[i].reason_for_test.name;
-        let order_id = orders[i].order_id;
-
-        console.log(orders[i].tests);
       
-        for(let t = 0; t < tests.length; t++){
-          dataTable.row.add([accession_number, tests[t].name, reason_for_test, 
-              addDrawBTN(`${order_id}`), addVoidBTN(order_id)]).draw();
-        }
-      }
+      orders.forEach(order => {
+        dataTable
+          .row
+          .add([
+            order.accession_number,
+            order.tests.map(({name}) => name).join('; <br />'),
+            order.reason_for_test.name,
+            addDrawBTN(order.order_id),
+            addVoidBTN(order.order_id)
+          ]).draw();
+      });
     }
 
     function addDrawBTN(order_id){

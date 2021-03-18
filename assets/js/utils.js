@@ -108,6 +108,19 @@ const Utils = (function () {
 
     return `${protocol}://${host}:${port}/api/v1/${path}`
   }
+  
+  async function getConceptByName(name) {
+    const response = await apiGet(`concepts?name=${name}`);
+    const responseBody = await response.json();
+
+    if (!response.ok) {
+      const message = formatApiError(responseBody);
+      console.error(`API Error: Failed to retrieve concept '${name}': ${message}`);
+      throw new Error(message);
+    }
+    
+    return responseBody[0];
+  }
 
   function apiRequestHeaders(extraHeaders = {}) {
     const headers = new Headers();
@@ -126,8 +139,10 @@ const Utils = (function () {
     arrayCompact,
     arrayDifference,
     arrayIntersection,
+    expandApiPath,
     flashErrorAndRedirectToHome,
     formatApiError,
+    getConceptByName,
     queryParams,
     zipArrays
   };
