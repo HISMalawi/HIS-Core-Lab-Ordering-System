@@ -32,10 +32,9 @@
         font-weight: bolder;
       }
 
-      .void-btns {
-        background-color: tomato;
-        color: white;
-        font-size: 35px;
+      .action-imgs {
+        width: 65px;
+        height: 65px;
       }
     </style>
 
@@ -64,6 +63,9 @@
 
   <script type="text/javascript" src="../assets/js/state.js"></script>
   <script type="text/javascript">
+
+    var tt_cancel_destination = `/views/patient_dashboard.html?patient_id=${sessionStorage.patientID}`;
+
     const {LAB_STATE_ID} = State;
 
     function fetchLabOrders(setDate){
@@ -107,13 +109,17 @@
     }
 
     function addDrawBTN(order_id){
-      return `<button class="round-btns" 
-        onmousedown="drawOrder('${order_id}');">Draw</button>`;
+      //return `<button class="round-btns" 
+        //onmousedown="drawOrder('${order_id}');">Draw</button>`;
+      return `<img src="/assets/images/syringe.png" 
+        class="action-imgs" onmousedown="drawOrder('${order_id}');"/>`;
     }
 
     function addVoidBTN(order_id){
-      return `<button class="round-btns void-btns" 
-        onmousedown="voidOrder(${order_id});">X</button>`;
+      //return `<button class="round-btns void-btns" 
+        //onmousedown="voidOrder(${order_id});">X</button>`;
+      return `<img src="/assets/images/delete.png" class="action-imgs" 
+        mousedown="voidOrder(${order_id});" />`;
     }
 
     function drawOrder(order_id){

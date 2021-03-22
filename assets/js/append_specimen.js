@@ -71,8 +71,11 @@ function findIncompatibleTest(specimen, tests, specimenGroups) {
   return null;
 }
 
+let selectedSpecimenID;
+
 function updateView({tests, compatibleSpecimens, incompatibleSpecimens}) {
-  console.log({compatibleSpecimens, incompatibleSpecimens});
+  __$('nextButton').setAttribute("onmousedown","loadSubmitFormHandlers();")
+  //console.log({compatibleSpecimens, incompatibleSpecimens});
   const inputFrame = document.querySelector(`#inputFrame${tstCurrentPage}`);
   const name = tests.map(({name}) => name).join('; ');
   
@@ -81,8 +84,55 @@ function updateView({tests, compatibleSpecimens, incompatibleSpecimens}) {
     return;
   }
   
-  inputFrame.innerHTML = SpecimenSelect(name, compatibleSpecimens, incompatibleSpecimens);
-  loadEventHandlers();
+  //inputFrame.innerHTML = SpecimenSelect(name, compatibleSpecimens, incompatibleSpecimens);
+  //loadEventHandlers();
+  //console.log(compatibleSpecimens);
+  let innerHTML = `<table id="specimen-table">`;
+  //findPotentialSpecimens
+  let even_odd = 'odd';
+  let otherSpecimen = '';
+
+  for(let i = 0; i < compatibleSpecimens.length; i++){
+    even_odd = (even_odd == 'odd' ? 'even' : 'odd');
+    let name = compatibleSpecimens[i].name;
+    let concept_id = compatibleSpecimens[i].concept_id;
+    if(name.match(/other/i)){
+      otherSpecimen += `<tr class="${even_odd} specimen-rows" onclick="selectSpecimen(${concept_id});">
+        <td class="checkboxes">${createCheckBox(concept_id)}</td>
+        <td class="specimen-names">${name}</td>
+      </tr>
+    `;
+      continue;
+    }
+
+    innerHTML += `<tr class="${even_odd} specimen-rows" onclick="selectSpecimen(${concept_id});">
+        <td class="checkboxes">${createCheckBox(concept_id)}</td>
+        <td class="specimen-names">${name}</td>
+      </tr>
+    `;
+  }
+
+  __$("helpText" + tstCurrentPage).innerHTML = `Select ${name} test specimen`;
+
+  if(otherSpecimen.length > 0)
+    innerHTML += otherSpecimen;
+
+
+  inputFrame.innerHTML = innerHTML;
+}
+
+function createCheckBox(concept_id){
+  return `<img class="checkboxIMG" click="selectSpecimen(${concept_id})" 
+    id="checkbox-${concept_id}" src="/public/touchscreentoolkit/lib/images/unchecked.jpg" />`;
+}
+
+function selectSpecimen(concept_id){
+  let checkboxes = document.getElementsByClassName('checkboxIMG');
+  for(let i = 0; i < checkboxes.length; i++){
+    checkboxes[i].setAttribute("src","/public/touchscreentoolkit/lib/images/unchecked.jpg");
+  }
+  __$(`checkbox-${concept_id}`).setAttribute("src","/public/touchscreentoolkit/lib/images/checked.jpg");
+  selectedSpecimenID =  concept_id;
 }
 
 function SpecimenSelect(label, compatibleSpecimens, incompatibleSpecimens) {
@@ -141,7 +191,7 @@ function loadSubmitFormHandlers() {
   nextButton.setAttribute('onmousedown', '');
   nextButton.addEventListener('mousedown', async function(_event) {
     try {
-      const specimenId = getSelectedSpecimen();
+      const specimenId = selectedSpecimenID; // getSelectedSpecimen();
       const {order_id} = Utils.queryParams();
 
       if (!specimenId) {

@@ -477,7 +477,7 @@ function postOrder(orders){
 async function submitIncompleteOrder(encounter) {
   const requesting_clinician = sessionStorage.username;
   const target_lab = all_locations[parseInt($("location_name").value)];
-  const ordering_reason = await Utils.getConceptByName($("reson_for_test").value);
+  const ordering_reason = getTestReason(__$("reson_for_test").value);
   const tests = Object.keys(selected_tests).map(concept_id => ({concept_id}));
 
   let orders;
@@ -554,6 +554,16 @@ function loadOrder(){
   </table>`;
 }
 
+function getTestReason(selected_reason){
+  let reasons = {
+      "Repeat / Missing": 9144,
+      "Targeted": 3280,
+      "Confirmatory": 1345,
+      "Stat": 6368,
+      "Routine": 432
+  };
 
+  return reasons[selected_reason];
+}
 
 getLocations();

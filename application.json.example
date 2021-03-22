@@ -24,11 +24,11 @@
       "activitiesDescription": "Print Patient National Health ID",
       "comment": "these are examples, add another application with this template at the end of these curly braces by adding a comma and copying this template"
     },{
-      "activitiesName": "Lab activities",
+      "activitiesName": "Enter Lab Result",
       "available": false,
-      "activitiesIcon": "/assets/images/lab.png",
-      "url": "/views/patient/labs.html",
-      "activitiesDescription": "Print Patient Visit Summary",
+      "activitiesIcon": "/assets/images/results.png",
+      "url": "/views/patient/lab/test_without_results.html",
+      "activitiesDescription": "Enter Lab Test Result",
       "comment": "these are examples, add another application with this template at the end of these curly braces by adding a comma and copying this template"
     },{
       "activitiesName": "Demographics (Edit)",

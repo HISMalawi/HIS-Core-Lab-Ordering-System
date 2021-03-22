@@ -9,8 +9,6 @@ var State = (function() {
 
     const Storage = sessionStorage; // We can swap localStorage if need be
     
-    console.log(Storage.moduleState);
-    
     function deserializeState(state) {
         try {
             return JSON.parse(state);

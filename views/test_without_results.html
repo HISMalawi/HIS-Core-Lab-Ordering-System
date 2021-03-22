@@ -1,0 +1,158 @@
+<script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js"
+defer="true"></script>
+<!-- <script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/standard.js" defer="true"></script> -->
+<script type="text/javascript" src="/assets/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="/assets/js/generic_ajaxrequest.js"></script>
+<script type="text/javascript" src="/assets/js/moment.js"></script>
+<script type="text/javascript" src="/assets/js/alertifyjs/alertify.js"></script>
+<!--script type="text/javascript" src="/assets/js/does_connection_exist.js"></script-->
+
+<link rel="stylesheet" href="/assets/css/alertifyjs/css/alertify.css" type="text/css">
+
+
+<link rel="stylesheet" href="/../../assets/css/datatables/jquery.dataTables.min.css" type="text/css">
+
+<script type="text/javascript" src="/../../assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="/../../assets/js/moment.js"></script>
+<script type="text/javascript" src="/../../assets/js/datatables/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/../../assets/js/datatables/dataTables.fixedHeader.min.js"></script>
+
+<style>
+#cancelButton, #clearButton {
+    display: none;
+}
+
+#orders-table {
+    border-collapse:separate;
+}
+
+#orders-table td {
+    border-style: solid;
+    border-width: 0px 0px 1px 0px;
+    text-align: left;
+    padding-left: 20px;
+}
+
+#orders-table th {
+    text-align: left;
+}
+
+.btns-col {
+    text-align: center !important;
+}
+
+.date-col {
+    text-align: center !important;
+}
+</style>
+
+
+<body id="mateme">
+  <div id="container">
+      <div id="content">
+
+        <form>
+
+            <input type="text" name="summary"
+            tt_onLoad="__$('keyboard').style.display = 'none';buildTable();"
+            tt_pageStyleClass="NoControls" helpText="Test without results" optional="true"/>
+
+         </form>
+
+    </div>
+  </div>
+</body>
+
+<script>
+function buildTable(){
+    let inputFrame = document.getElementById("inputFrame" + tstCurrentPage);
+    inputFrame.style = 'width:95.5%; height:90%;';
+    let nextButton = document.getElementById("nextButton");
+    nextButton.setAttribute("onmousedown",`location='/views/patient_dashboard.html?patient_id=${sessionStorage.patientID}'`);
+    inputFrame.innerHTML = `<table id="orders-table" class="order-tables">
+      <thead>
+        <tr>
+          <th>Accession#</th>
+          <th>Specimen</th>
+          <th>Test</th>
+          <th>Order date</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+    </table>`;
+    initDataTable();
+    fetchData();
+}
+
+function fetchData(){
+    let url = sessionStorage.apiProtocol+ '://' + sessionStorage.apiURL + ':' 
+    url += sessionStorage.apiPort + '/api/v1/lab/orders';
+    url += "?patient_id=" +  sessionStorage.patientID + "&status=drawn";
+    //url += "&date=" + setDate + "&status=drawn";
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
+            var orders = JSON.parse(this.responseText);
+            renderData(orders);
+        }
+    };
+    xhttp.open("GET", url, true);
+    xhttp.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+    xhttp.setRequestHeader('Content-type', "application/json");
+    xhttp.send(); 
+}
+
+function renderData(orders) {
+    dataTable.clear();
+
+    for(let i = 0; i < orders.length; i++){
+      let accession_number = orders[i].accession_number;
+      let order_date = moment(orders[i].order_date).format("DD/MMM/YYYY");
+      let specimen = orders[i].specimen.name;
+      let tests = orders[i].tests;
+      let order_id =  orders[i].order_id;
+      
+      for(let t = 0; t < tests.length; t++){
+        let result = tests[t].result;
+        if(result)
+            continue;
+            
+        dataTable.row.add([accession_number, specimen, 
+          tests[t].name, order_date, addEnterResultsBTN(accession_number, tests[t].name)]).draw();
+      }
+    }
+
+  }
+
+  var dataTable;
+
+  function initDataTable(){
+    dataTable = jQuery('#orders-table').DataTable( {
+      fixedHeader:    true,
+      searching:      false,
+      deferRender:    true,
+      scrollCollapse: false,
+      scroller:       false,
+      lengthChange:   false,
+      paging:         false,
+      columnDefs: [
+        {"className": "accession-numbers-col", "targets": 0},
+        {"className": "specimen-col", "targets": 1},
+        {"className": "tests-col", "targets": 2},
+        {"className": "date-col", "targets": 3},
+        {"className": "btns-col", "targets": 4}
+      ]
+    });
+  }
+
+  function addEnterResultsBTN(accession_number, test_name){
+      return `<button class="button blue navButton"
+        onmousedown="selectTest('${accession_number}', '${test_name}');"><span>Select</span></button>`
+  }
+
+  function selectTest(accession_number, test_name){
+    location = `result_entering.html?accession_number=${accession_number}&test_name=${test_name}`;
+  }
+</script>
