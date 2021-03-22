@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer="true"></script>
+    <!--script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/standard.js" defer="true"></script-->
+    <!-- <script type="text/javascript" src="../../../assets/js/jquery.min.js"></script> -->
+
+    <!-- <script type="text/javascript" src="../../../assets/js/post_parameters.js"></script> -->
+    <!-- <script type="text/javascript" src="../../../assets/js/generic_ajaxrequest.js"></script> -->
+    <!-- <script type="text/javascript" src="../../../assets/js/alertifyjs/alertify.js"></script> -->
+    <!--script type="text/javascript" src="../../../assets/js/does_connection_exist.js"></script-->
+    <!-- <script type="text/javascript" src="../../../assets/js/moment.js"></script> -->
+
+    <!-- <link rel="stylesheet" href="../../../assets/css/alertifyjs/css/alertify.css" type="text/css" /> -->
+    <link rel="stylesheet" href="../assets/css/append_specimen.css" type="text/css" />
+
+    <style>
+      .inputFrameClass {
+        width: 95.5% !important;
+        background-color: white !important;
+      }
+
+      .specimen-names {
+        margin-left: 10px;
+        color: black;
+        list-style: none;
+        font-family: "Nimbus Sans L","Arial Narrow",sans-serif;
+        font-size: 2.2em;
+        width: 100%;
+      }
+
+      .odd {
+        /*background-color: lightgray;*/
+      }
+      
+      #specimen-table td {
+      }
+
+      #specimen-table td {
+        border-collapse: collapse;
+        line-height: 25px;
+      }
+
+    </style>
+
+    <script>
+      var tt_cancel_destination = `/views/patient_dashboard.html?patient_id=${sessionStorage.patientID}`;
+    </script>
+  </head>
+
+  <body id="mateme">
+    <div id="container">
+      <div id="content">
+        <form action="post">
+          <select id="select_specimen"
+                  allowFreeText="false"
+                  helpText="Select Specimen"
+                  tt_onLoad="loadSpecimens()"
+                  name="reason"
+                  tt_pageStyleClass="NoKeyboard">
+          </select>
+        </form>
+      </div>
+    </div>
+  </body>
+
+  <script type="text/javascript" src="../assets/js/state.js"></script>
+  <script type="text/javascript" src="../assets/js/utils.js"></script>
+  <script type="text/javascript" src="../assets/js/append_specimen.js"></script>
+</html>

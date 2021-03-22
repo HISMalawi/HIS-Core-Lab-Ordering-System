@@ -1,33 +1,24 @@
+// require('utils')
 
-
-function fetchTests() {
-
+async function fetchTests() {
   var nextButton = $("nextButton");
   nextButton.setAttribute("onmousedown","validateSelectedTest();");
-
-  let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
-  url += "/programs/1/lab_tests/types?specimen_type=" + selectedTest;
+  
+  let url = Utils.expandApiPath(`lab/test_types`);
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
-      var obj = JSON.parse(this.responseText);
-      var el = document.getElementById("inputFrame"  + tstCurrentPage);
+      let tests = JSON.parse(this.responseText);
+      let el = document.getElementById("inputFrame"  + tstCurrentPage);
       el.style = "width: 95.5%; height: 90%; overflow: auto;";
       el.innerHTML = null;
-      let viral_load; let tests = [];
+      
+      const viralLoadIndex = tests.findIndex(({name}) => name.match(/Viral load/i));
+      const viralLoad = viralLoadIndex >= 0 ? tests.splice(viralLoadIndex, 1)[0] : null;
 
-      for(let i = 0; i < obj.length; i++){
-        if(obj[i].name.match(/viral load/i)){
-          viral_load = obj[i];
-          continue;
-        }
-
-         tests.push(obj[i]);
-      }
-
-      if(viral_load != undefined)
-        tests.splice(0,0,viral_load);
+      tests = tests.sort((test1, test2) => test1.name > test2.name);
+      if (viralLoad) tests.unshift(viralLoad);
 
       buildTestTable(tests, el);
     }
@@ -305,7 +296,7 @@ function loadPressedOrder(){
   }
 
   let nextButton = $("nextButton");
-  nextButton.setAttribute("onmousedown","submitOrder();");
+  nextButton.setAttribute("onmousedown","createEncounter('submitOrder');");
 
   el.innerHTML = `
   <table id="confirmation-table">
@@ -388,12 +379,191 @@ function resetNextButton(){
   nextButton.setAttribute("onmousedown","gotoNextPage();");
 }
 
-function submitOrder(){
+function createEncounter(nextFunction){
+  let currentTime = moment().format(' HH:mm:ss');
+  let encounter_datetime = moment(sessionStorage.sessionDate).format('YYYY-MM-DD');
+  encounter_datetime += currentTime;
+
+  let encounter = {
+      encounter_type_id: 57,
+      patient_id: sessionStorage.patientID,
+      encounter_datetime: encounter_datetime
+  }
+
+  submitParameters(encounter, "/encounters", nextFunction);
+
+}
+
+function submitOrder(encounter) {
   let clinician_name = `${$("given_name").value} ${$("family_name").value}`;
   let ordering_loc = `${all_locations[parseInt($("location_name").value)]}`;
-  let orderiing_reason = $("reson_for_test").value;
+  let ordering_reason = $("reson_for_test").value;
   let combine_test_in_order = $("combine_test_in_order").value;
+  combine_test_in_order  = (combine_test_in_order == "No" ? false : true);
 
+  let specimen_id = fetchedTests[selectedTest];
+  let selected_tests_concept_ids = [];
+
+  let order_obj = {
+    clinician_name: clinician_name,
+    ordering_location: ordering_loc,
+    ordering_reason:  432,
+    specimen_id: specimen_id
+  }
+
+  for(concept_id  in selected_tests){
+    selected_tests_concept_ids.push({concept_id: concept_id});
+  }
+
+  let order_param = createOrderObj(encounter, order_obj, selected_tests_concept_ids, combine_test_in_order);
+  postOrder(order_param);
+}
+
+function createOrderObj(encounter, order_obj, tests, combine_tests) {
+  if(combine_tests){
+    let orders = {
+      orders: [
+        {
+          "encounter_id": encounter.encounter_id,
+          "specimen": {
+            "concept_id": order_obj.specimen_id
+          },
+          "tests": tests,
+          "requesting_clinician": order_obj.clinician_name,
+          "target_lab": order_obj.ordering_location,
+          "reason_for_test_id": order_obj.ordering_reason
+        }
+      ]
+    }
+    return orders;
+  }else{
+    let orders = {orders: []}
+    for(let i = 0; i < tests.length; i++){
+      orders.orders.push({
+          "encounter_id": encounter.encounter_id,
+          "specimen": {
+          "concept_id": order_obj.specimen_id
+        },
+          "tests": [tests[i]],
+          "requesting_clinician": order_obj.clinician_name,
+          "target_lab": order_obj.ordering_location,
+          "reason_for_test_id": order_obj.ordering_reason
+        });
+    }
+    return orders;
+  }
+}
+
+function postOrder(orders){
+  var url = apiProtocol+ '://' + apiURL + ':' + apiPort + '/api/v1/lab/orders';
+
+  var req = new XMLHttpRequest();
+  req.onreadystatechange = function () {
+      if (this.readyState == 4) {
+          if (this.status == 201) {
+              window.location = "/views/patient_dashboard.html?patient_id=" + sessionStorage.patientID;
+          }
+      }
+  };
+
+  req.open("POST", url, true);
+  req.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+  req.setRequestHeader('Content-type', "application/json");
+  //req.send(parametersPassed);
+  req.send(JSON.stringify(orders));
+
+}
+
+async function submitIncompleteOrder(encounter) {
+  const requesting_clinician = sessionStorage.username;
+  const target_lab = all_locations[parseInt($("location_name").value)];
+  const ordering_reason = getTestReason(__$("reson_for_test").value);
+  const tests = Object.keys(selected_tests).map(concept_id => ({concept_id}));
+
+  let orders;
+  
+  if ($('combine_tests_in_one_order').value.match(/Yes/i)) {
+    orders = [
+      {
+        encounter_id: encounter.encounter_id,
+        reason_for_test_id: ordering_reason.concept_id,
+        requesting_clinician,
+        target_lab,
+        tests
+      }
+    ];
+  } else {
+    orders = tests.map(test => ({
+      encounter_id: encounter.encounter_id,
+      reason_for_test_id: ordering_reason.concept_id,
+      requesting_clinician,
+      target_lab,
+      tests: [test]
+    }));
+  }
+
+  postOrder({orders});
+}
+
+function loadOrder(){
+  var el = document.getElementById("inputFrame"  + tstCurrentPage);
+  el.style = "width: 95.5%; overflow: auto;";
+  let selected_text_html = [];
+
+  for(let concept_id in selected_tests){
+    selected_text_html.push(selected_tests[concept_id]);
+  }
+
+  let nextButton = $("nextButton");
+  nextButton.setAttribute("onmousedown","createEncounter('submitIncompleteOrder');");
+
+  el.innerHTML = `
+  <table id="confirmation-table">
+    <thead>
+      <tr>
+        <th class="indicators">Indicator</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="indicators">Ordering provider username</td>
+        <td id="ordering-clinician">
+          ${sessionStorage.username}
+        </td>
+      </tr>
+      <tr>
+        <td class="indicators">Ordering Location</td>
+        <td id="ordering-location">
+        ${all_locations[parseInt($("location_name").value)]}
+        </td>
+      </tr>
+      <tr>
+        <td class="indicators">Order Reason</td>
+        <td id="ordering-reason">
+          ${$("reson_for_test").value}
+        </td>
+      </tr>
+      <tr>
+        <td class="indicators">Test(s)</td>
+        <td id="ordering-tests">
+          ${selected_text_html.join("<br />")}
+        </td>
+      </tr>
+    </tbody>
+  </table>`;
+}
+
+function getTestReason(selected_reason){
+  let reasons = {
+      "Repeat / Missing": 9144,
+      "Targeted": 3280,
+      "Confirmatory": 1345,
+      "Stat": 6368,
+      "Routine": 432
+  };
+
+  return reasons[selected_reason];
 }
 
 getLocations();
