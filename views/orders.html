@@ -50,8 +50,7 @@
       let url = sessionStorage.apiProtocol+ '://' + sessionStorage.apiURL + ':' 
       url += sessionStorage.apiPort + '/api/v1/lab/orders';
       url += "?patient_id=" +  sessionStorage.patientID;
-      url += "&date=" + setDate + "&status=ordered";
-      console.log(url)
+      url += "&date=" + setDate + "&status=drawn";
 
       var req = new XMLHttpRequest();
       req.onreadystatechange = function () {
@@ -78,8 +77,6 @@
       let specimen = orders[i].specimen.name;
       let tests = orders[i].tests;
       let order_id =  orders[i].order_id;
-
-      console.log(orders[i]);
 
       for(let t = 0; t < tests.length; t++){
         dataTable.row.add([accession_number, specimen, 

@@ -73,6 +73,7 @@
       url += sessionStorage.apiPort + '/api/v1/lab/orders?patient_id=';
       url += sessionStorage.patientID  + "&status=ordered";
       url += "&date=" + setDate;
+      dataTable.clear().draw();
 
       var req = new XMLHttpRequest();
       req.onreadystatechange = function () {
@@ -80,7 +81,6 @@
               if (this.status == 200) {
                 let orders = JSON.parse(this.responseText); 
                 State.update(LAB_STATE_ID, {orders})
-
                 renderData(orders);
               }
           }
@@ -93,8 +93,7 @@
     }
 
     function renderData(orders) {
-      dataTable.clear();
-      
+
       orders.forEach(order => {
         dataTable
           .row

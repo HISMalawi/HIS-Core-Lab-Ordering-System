@@ -3,8 +3,13 @@
 async function fetchTests() {
   var nextButton = $("nextButton");
   nextButton.setAttribute("onmousedown","validateSelectedTest();");
-  
-  let url = Utils.expandApiPath(`lab/test_types`);
+  let url;
+
+  if(selected_specimen_concept_name){
+    url = Utils.expandApiPath(`lab/test_types?specimen_type=${selected_specimen_concept_name}`);
+  }else{
+    url = Utils.expandApiPath(`lab/test_types`);
+  }
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -31,7 +36,7 @@ async function fetchTests() {
 
 function getAvailableSpecimen(test_string) {
   let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
-  url += "/programs/1/lab_tests/panels/?search_string=" + test_string;
+  url += "/lab/specimen_types?test_type=" + test_string;
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -173,6 +178,8 @@ function renderTests(tests){
   autoSelectRow();
 }
 
+var selected_specimen_concept_name;
+
 function updateSelectedTest(el){
   let tests = document.getElementsByClassName("li-tests");
   let  inputBox = $("select_test_input");
@@ -183,6 +190,7 @@ function updateSelectedTest(el){
 
   el.style = "background-color: lightblue;";
   inputBox.value  = el.getAttribute("tstvalue");
+  selected_specimen_concept_name = el.innerHTML;
 }
 
 function addKeyboard(){
