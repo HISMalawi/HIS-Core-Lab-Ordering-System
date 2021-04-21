@@ -255,7 +255,9 @@
              tt_pageStyleClass="NoControls" type="text"/>
 
              <select allowFreeText="false" helpText="Combine test(s) in one order"
-                id="combine_test_in_order" name="reason" tt_pageStyleClass="NoKeyboard">
+                id="combine_test_in_order" name="reason" 
+                condition="showCombineTest() == true"
+                tt_pageStyleClass="NoKeyboard">
                 <option value=''></option>
                 <option value="Yes">Yes</option>
                 <option value='No'>No</option>

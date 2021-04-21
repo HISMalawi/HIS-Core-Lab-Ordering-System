@@ -303,8 +303,15 @@ function loadPressedOrder(){
     selected_text_html.push(selected_tests[concept_id]);
   }
 
+  let combine_test_in_order;
   let nextButton = $("nextButton");
   nextButton.setAttribute("onmousedown","createEncounter('submitOrder');");
+
+  if(showCombineTest()){
+    combine_test_in_order = $("combine_test_in_order").value;
+  }else{
+    combine_test_in_order = 'No';
+  }
 
   el.innerHTML = `
   <table id="confirmation-table">
@@ -347,7 +354,7 @@ function loadPressedOrder(){
       </tr>
       <tr>
         <td class="indicators">Combine Test(s) in  one order</td>
-        <td id="ordering-tests">${$("combine_test_in_order").value}</td>
+        <td id="ordering-tests">${combine_test_in_order}</td>
       </tr>
     </tbody>
   </table>`;
@@ -406,8 +413,13 @@ function submitOrder(encounter) {
   let clinician_name = `${$("given_name").value} ${$("family_name").value}`;
   let ordering_loc = `${all_locations[parseInt($("location_name").value)]}`;
   let ordering_reason = $("reson_for_test").value;
-  let combine_test_in_order = $("combine_test_in_order").value;
-  combine_test_in_order  = (combine_test_in_order == "No" ? false : true);
+  let combine_test_in_order  = showCombineTest();
+  if(combine_test_in_order){
+    combine_test_in_order = ($("combine_test_in_order").value == 'Yes' ? true : false);
+  }else{
+    combine_test_in_order = false;
+  }
+
 
   let specimen_id = fetchedTests[selectedTest];
   let selected_tests_concept_ids = [];
@@ -437,6 +449,7 @@ function createOrderObj(encounter, order_obj, tests, combine_tests) {
             "concept_id": order_obj.specimen_id
           },
           "tests": tests,
+          "date": encounter.encounter_datetime,
           "requesting_clinician": order_obj.clinician_name,
           "target_lab": order_obj.ordering_location,
           "reason_for_test_id": order_obj.ordering_reason
@@ -453,6 +466,7 @@ function createOrderObj(encounter, order_obj, tests, combine_tests) {
           "concept_id": order_obj.specimen_id
         },
           "tests": [tests[i]],
+          "date": encounter.encounter_datetime,
           "requesting_clinician": order_obj.clinician_name,
           "target_lab": order_obj.ordering_location,
           "reason_for_test_id": order_obj.ordering_reason
@@ -469,7 +483,16 @@ function postOrder(orders){
   req.onreadystatechange = function () {
       if (this.readyState == 4) {
           if (this.status == 201) {
-              window.location = "/views/patient_dashboard.html?patient_id=" + sessionStorage.patientID;
+            let orders = JSON.parse(this.responseText);
+            let order_ids = [];
+            for(let i = 0; i < orders.length; i++){
+              order_ids.push(orders[i].order_id);
+            }
+            if(document.URL.match(/order.html/i)){
+              window.location = '/views/patient_dashboard.html?patient_id=' + sessionStorage.patientID;
+            }else{
+              window.location = `print/label.html?order_ids=${order_ids.join(',')}`;
+            }
           }
       }
   };
@@ -477,7 +500,6 @@ function postOrder(orders){
   req.open("POST", url, true);
   req.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
   req.setRequestHeader('Content-type', "application/json");
-  //req.send(parametersPassed);
   req.send(JSON.stringify(orders));
 
 }
@@ -489,23 +511,32 @@ async function submitIncompleteOrder(encounter) {
   const tests = Object.keys(selected_tests).map(concept_id => ({concept_id}));
 
   let orders;
-  
-  if ($('combine_tests_in_one_order').value.match(/Yes/i)) {
+  let combine_tests_in_one_order;
+
+  if(showCombineTest()){
+    combine_tests_in_one_order = $('combine_tests_in_one_order').value == 'Yes' ? true : false;
+  }else{ 
+    combine_tests_in_one_order = false;
+  }
+
+  if (combine_tests_in_one_order) {
     orders = [
       {
         encounter_id: encounter.encounter_id,
+        date: sessionStorage.sessionDate,
         reason_for_test_id: ordering_reason.concept_id,
-        requesting_clinician,
-        target_lab,
+        requesting_clinician: requesting_clinician,
+        target_lab: target_lab,
         tests
       }
     ];
   } else {
     orders = tests.map(test => ({
       encounter_id: encounter.encounter_id,
+      date: sessionStorage.sessionDate,
       reason_for_test_id: ordering_reason.concept_id,
-      requesting_clinician,
-      target_lab,
+      requesting_clinician: requesting_clinician,
+      target_lab: target_lab,
       tests: [test]
     }));
   }
@@ -572,6 +603,15 @@ function getTestReason(selected_reason){
   };
 
   return reasons[selected_reason];
+}
+
+function showCombineTest(){
+  let tests = [];
+  for(concept_id in selected_tests){
+    tests.push(concept_id);
+  }
+
+  return (tests.length > 1 ? true : false);
 }
 
 getLocations();

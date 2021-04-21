@@ -1,0 +1,89 @@
+<style>
+    * {
+      -webkit-touch-callout: none;
+      /* iOS Safari */
+      -webkit-user-select: none;
+      /* Safari */
+      -khtml-user-select: none;
+      /* Konqueror HTML */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* Internet Explorer/Edge */
+      user-select: none;
+      /* Non-prefixed version, currently
+                                    supported by Chrome and Opera */
+    }
+  
+    .print-table {
+      display: table;
+      width: 99%;
+      height: 99%;
+    }
+  
+    .print-table-row {
+      display: table-row;
+    }
+  
+    .print-table-cell {
+      display: table-cell;
+      text-align: center;
+    }
+  
+    .barcode {
+      top: 12%;
+    }
+  
+    .print-table-cell p {
+      font-size: 50px;
+    }
+  </style>
+  
+  
+  <script src="/assets/js/jquery.min.js"></script>
+  <script src="/assets/js/core.js"></script>
+  
+  <div class="print-table">
+    <div class="print-table-row">
+  
+      <div class="print-table-cell">
+        <img src="/assets/images/zebra-label-printer.jpeg" class="barcode" />
+        <p>Printing specimen label.</p>
+        <p>Please wait <blink>....</blink>
+          <p>
+      </div>
+  
+  
+    </div>
+  </div>
+  
+  <script>
+    var apiURL = sessionStorage.getItem("apiURL");
+    var apiPort = sessionStorage.getItem("apiPort");
+    var apiProtocol = sessionStorage.getItem("apiProtocol");
+
+    var url = window.location.href;
+    var url = new URL(url);
+    var order_ids = url.searchParams.get("order_ids");
+    var redirectURL = '/views/patient_dashboard.html?patient_id=' + sessionStorage.patientID;
+    var redirectOrders = [];
+
+    order_ids = order_ids.split(',');
+
+    for(let i = 1; i< order_ids.length; i++){
+      redirectOrders.push(order_ids[i]);
+    }
+  
+    if(redirectOrders.length > 0)
+        redirectURL = `label.html?order_ids=${redirectOrders.join(',')}`;
+
+    url = apiProtocol + "://" + apiURL + ":" + apiPort + `/api/v1/lab/labels/order?order_id=${order_ids[0]}`;
+    document.location = url;
+    
+    function red() {
+      finishRedirect(redirectURL);
+    }
+      
+    setTimeout('red()', 3000);
+  </script>
+  

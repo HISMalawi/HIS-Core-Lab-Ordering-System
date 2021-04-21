@@ -200,7 +200,7 @@ function loadSubmitFormHandlers() {
       }
       
       await updateOrder(order_id, {concept_id: specimenId});
-      window.location.href = `/views/patient_dashboard.html?patient_id=${sessionStorage.patientID}`;
+      window.location.href = `print/label.html?order_ids=${order_id}`;
     } catch (exception) {
       console.error(exception);
       showMessage(exception.message);
@@ -233,3 +233,6 @@ async function updateOrder(orderId, params) {
   return responseBody;
 }
 
+var url = window.location.href;
+var url = new URL(url);
+var order_id = url.searchParams.get("order_id");
