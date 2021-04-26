@@ -16,7 +16,10 @@
 <style>
 
 #lab-stats-table {
-  width: 96%;
+  width: 95%;
+  border-style: solid;
+  border-width: 1px;
+  border-collapse: collapse;
 }
 
 .stat-boxes {
@@ -29,6 +32,21 @@ th {
   height: 40px;
   color: black;
 }
+
+.text-right {
+  text-align: right;
+  padding-right: 5px;
+}
+
+td {
+  border-style: solid;
+  border-width: 1px;
+}
+
+.text-left {
+  text-align: left;
+}
+
 </style>
 
 <div id='lab-stats'>
@@ -36,10 +54,9 @@ th {
 <table id='lab-stats-table'>
   <thead>
     <tr class='stat-boxes'>
+      <th>Test</th>
       <th>Ordered</th>
-      <th>Rejected</th>
-      <th>Accepted</th>
-      <th>Processed</th>
+      <th>Drawn</th>
     </tr>
   </thead>
 </table>
@@ -49,20 +66,49 @@ th {
 
 <script>
 
-function dashboardStats(stats) {
-  console.log(stats);
+function dashboardStats(stats, order_status) {
+  for(let i = 0; i < stats.length; i++){
+    let tests = stats[i].tests;
+
+    for(let t = 0; t < tests.length; t++){
+      let test_name = tests[t].name;
+      if(orders[test_name] == undefined)
+        orders[test_name] = {
+          ordered: 0, drawn: 0
+        }
+      
+      if(order_status == 'ordered')
+        orders[test_name].ordered += 1;
+
+      if(order_status == 'drawn')
+        orders[test_name].drawn += 1;
+
+    }
+    
+  }
+
+  (order_status == 'ordered' ? fetchDashboardStats('drawn') : renderResults());
 }
 
-function fetchDashboardStats() {
-  var url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
-  url += "/dashboard_stats?date=" + sessionStorage.sessionDate;
-  url+= "&program_id=" + sessionStorage.programID;
+function renderResults(){
+  data_table.clear();
+  for(let test_name in orders){
+    data_table.row.add([test_name, orders[test_name].ordered, orders[test_name].drawn]).draw();
+  }
+}
+
+var orders = {};
+
+function fetchDashboardStats(order_status) {
+  let url = sessionStorage.apiProtocol+ '://' + sessionStorage.apiURL + ':' 
+  url += sessionStorage.apiPort + `/api/v1/lab/orders?status=${order_status}`;
+  url += "&date=" + sessionStorage.sessionDate;
 
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
       var obj = JSON.parse(this.responseText);
-      dashboardStats(obj);
+      dashboardStats(obj, order_status);
     }
   };
   xhttp.open("GET", url, true);
@@ -81,11 +127,16 @@ function initializeTable() {
       scrollY: 430,
       scroller: {
           loadingIndicator: true
-      }
-  });
+      },
+      columnDefs: [
+        {"className": "text-left", "targets": 0}, 
+        {"className": "text-right", "targets": 1}, 
+        {"className": "text-right", "targets": 2} 
+      ]
+    });
 }
 
-setTimeout("fetchDashboardStats()", 200);
+setTimeout("fetchDashboardStats('ordered')", 200);
 initializeTable();
 </script>
 
