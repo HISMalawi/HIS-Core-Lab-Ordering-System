@@ -395,6 +395,11 @@ function resetNextButton(){
 }
 
 function createEncounter(nextFunction){
+  if(isNaN(parseInt(sessionStorage.patientID))){
+    showMessage("Something has gone wrong. Patient <b>NOT</b> found.<p>Try scanning the client's barcode again.")
+    return;
+  }
+
   let currentTime = moment().format(' HH:mm:ss');
   let encounter_datetime = moment(sessionStorage.sessionDate).format('YYYY-MM-DD');
   encounter_datetime += currentTime;
@@ -524,7 +529,7 @@ async function submitIncompleteOrder(encounter) {
       {
         encounter_id: encounter.encounter_id,
         date: sessionStorage.sessionDate,
-        reason_for_test_id: ordering_reason.concept_id,
+        reason_for_test_id: ordering_reason,
         requesting_clinician: requesting_clinician,
         target_lab: target_lab,
         tests
@@ -534,7 +539,7 @@ async function submitIncompleteOrder(encounter) {
     orders = tests.map(test => ({
       encounter_id: encounter.encounter_id,
       date: sessionStorage.sessionDate,
-      reason_for_test_id: ordering_reason.concept_id,
+      reason_for_test_id: ordering_reason,
       requesting_clinician: requesting_clinician,
       target_lab: target_lab,
       tests: [test]
