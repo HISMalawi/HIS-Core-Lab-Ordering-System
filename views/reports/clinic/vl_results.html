@@ -1,0 +1,441 @@
+<script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js"
+        defer="true"></script>
+<script type="text/javascript" src="/assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="/assets/js/moment.js"></script>
+<script type="text/javascript" src="/assets/js/generic_ajaxrequest.js"></script>
+<script type="text/javascript" src="/assets/js/post_parameters.js"></script>
+<script src="/apps/ART/assets/js/fast_track_alert.js"></script>
+<script type="text/javascript" src="/assets/js/alertifyjs/alertify.js"></script>
+<!--script type="text/javascript" src="/assets/js/does_connection_exist.js"></script-->
+
+
+
+<link rel="stylesheet" href="/apps/ART/assets/css/datatable/jquery.dataTables.min.css" type="text/css">
+<link rel="stylesheet" href="/apps/ART/assets/css/datatable/scroller.dataTables.min.css" type="text/css">
+
+<script type="text/javascript" src="/assets/js/datatables/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/assets/js/datatables/dataTables.fixedHeader.min.js"></script>
+
+
+<style>
+#clearButton {display: none;}
+#report-cover {
+  position: absolute;
+  background-color: black;
+  width: 100%;
+  height: 102%;
+  left: 0%;
+  top: 0%;
+  z-index: 990;
+  opacity: 0.65;
+}
+
+#spinner {
+  position: absolute;
+  top: 150px;
+  left: 40%;
+  z-index: 991;
+}
+
+.test-table {
+    display: table;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 15px;
+    color: black;
+}
+
+.test-table-row {
+    display: table-row;
+}
+
+.test-table-cell {
+    display: table-cell;
+    border-style: solid;
+    border-width: 1px;
+    text-align: center;
+    line-height: 20px;
+    height: 50px;
+    padding: 10px;
+    box-shadow: 5px 10px #888888;
+    width: 150px;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.check-boxes {
+    border-right-style: solid;
+    border-right-width: 1px;
+    padding-right: 10px;
+}
+
+.checkbox-icons  {
+    width: 14px;
+    height: 14px;
+} 
+
+.dt-numbers {
+    width: 12px;
+    text-align: center;
+}
+
+.dt-age-groups {
+    text-align: left;
+    margin-left: 10px;
+    width: 30%;
+}
+
+#report th, #report td {
+    border-style: solid;
+    border-width: 1px;
+}
+
+.dt-test-numbers {
+    text-align: right;
+    margin-right: 10px;
+}
+
+.dt-dates {
+    text-align: center;
+    width: 10%;
+}
+
+.dt-arv-numbers {
+    text-align: left;
+    margin-left: 5px;
+    width: 15%;
+}
+
+.dt-gender {
+    text-align: center;
+    width: 10%;
+}
+
+.dt-tests {
+    text-align: left;
+    margin-left: 5px;
+}
+</style>
+
+<script>
+function showReport(){
+    if(Object.keys(selected_tests).length === 0){
+      showMessage("Select test(s) to continue.");
+    }else{
+      if(Object.keys(selected_tests).length > 4){
+        showMessage("Select 4 or less tests to display.")
+      }else{
+        gotoNextPage();
+      }
+    }
+}
+
+function fetchTestResults(){
+    selected_tests = {};
+    let nextButton = document.getElementById('nextButton');
+    nextButton.setAttribute("onmousedown", "showReport();");
+
+    if(collected_samples.length > 0){
+        buildSelectSamplePage();
+        return;
+    }
+
+    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
+    inputFrame.style = 'width: 95.5%; height: 90%;';
+
+    let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
+    url += "/lab_test_results?date=" + sessionStorage.sessionDate;
+    url += `&program_id=23&start_date=${start_date}&end_date=${end_date}`; 
+
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && (this.status == 201 || this.status == 200)) {
+            fetched_samples = JSON.parse(this.responseText);
+            document.getElementById("report-cover").style.display = "none";
+            document.getElementById("spinner").style.display = "none";
+            loadSamples();
+        }
+    };
+    xhttp.open("GET", url, true);
+    xhttp.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+    xhttp.setRequestHeader('Content-type', "application/json");
+    xhttp.send();
+}
+
+var collected_samples = [];
+var fetched_samples;
+
+function loadSamples(){
+
+    for(let i = 0; i < fetched_samples.length; i++){
+        if(collected_samples.indexOf(fetched_samples[i].test) < 0)
+            collected_samples.push(fetched_samples[i].test);
+
+    }
+
+    buildSelectSamplePage();
+}
+
+function buildSelectSamplePage(){
+    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
+    inputFrame.innerHTML = null;
+
+    var divTable = document.createElement("div");
+    divTable.setAttribute("class","test-table");
+    inputFrame.appendChild(divTable);
+    var row = document.createElement("div");
+    row.setAttribute("class","test-table-row");
+    divTable.appendChild(row);
+    var rowCount = 0;
+
+    for(let i = 0; i < collected_samples.length; i++){
+        if(rowCount == 4) {
+            row = document.createElement("div");
+            row.setAttribute("class","test-table-row");
+            divTable.appendChild(row);
+            rowCount = 0;
+        }
+
+        var cell = document.createElement("div");
+        cell.setAttribute("class","test-table-cell");
+        cell.setAttribute("style","background-color: white;");
+        cell.innerHTML = assignCheckBox(collected_samples[i], (i+1));
+        cell.setAttribute("onmousedown","selectTest(this);");
+        cell.setAttribute("id", (i+1));
+        cell.setAttribute("concept_name", collected_samples[i]);
+        row.appendChild(cell);
+        rowCount++;
+
+    }
+}
+
+function assignCheckBox(concept_name, id) {
+  return `
+  <table class = "tests-boxes">
+    <tr>
+      <td class="check-boxes"><img src="../../../assets/images/stop.png" 
+        class="checkbox-icons" id= "checkbox-${id}" /></td>
+      <td class="concept-names">${concept_name}</td>
+    </tr>
+  </table>`;
+}
+
+function selectTest(e){
+  if(e.getAttribute("style").match(/lightblue/i)){
+    e.setAttribute("style","background-color: white;");
+    let img = $(`checkbox-${e.id}`);
+    img.setAttribute("src","../../../assets/images/stop.png");
+
+    let selected_test_before = selected_tests;
+    selected_tests  = {}
+    for(let concept_id in selected_test_before){
+      if(parseInt(concept_id) == parseInt(e.id))
+        continue;
+
+      selected_tests[concept_id] = selected_test_before[concept_id];
+    }
+  }else{
+    e.setAttribute("style","background-color: lightblue;");
+    let img = document.getElementById(`checkbox-${e.id}`);
+    img.setAttribute("src","../../../assets/images/checkmark.png");
+    selected_tests[e.id] = e.getAttribute("concept_name");
+  }
+  
+  
+}
+
+function finishBTN(){
+    let nextButton = document.getElementById("nextButton");
+    nextButton.setAttribute("onmousedown", "javascript:location='/';");
+    nextButton.innerHTML = "<span>Finish</span>";
+}
+
+function buildReport(){
+    finishBTN();
+    let report_table = `<table id='report'><thead>`;
+    report_table += `<tr><th>&nbsp;</th><th>Age group</th>`;
+
+    for(let num in selected_tests) {
+        report_table += `<th>${selected_tests[num]}</th>`;
+    }
+
+    report_table += '</tr></thead><tbody>';
+    let counter = 1;
+    for(let i =0; i < age_groups.length; i++){
+        report_table += `<tr>
+            <td>${counter++}</td>
+            <td>${age_groups[i]}</td>`;
+        for(let num in selected_tests) {
+            report_table += `<td>${getNumber(age_groups[i], selected_tests[num])}</td>`
+        }
+        report_table += '</tr>';
+    }
+    report_table += '</tbody></table>';
+    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
+    inputFrame.style = "width: 95.5%; height: 90%;";
+    inputFrame.innerHTML = report_table;
+
+    let columns = [
+        {"className": "dt-numbers", "targets": 0},
+        {"className": "dt-age-groups", "targets": 1}
+    ];
+
+    counter = 2;
+    for(let num in selected_tests){
+        columns.push({"className": "dt-test-numbers", "targets": (counter++)})
+    }
+
+    jQuery('#report').DataTable( {
+        fixedHeader:    true,
+        searching:      false,
+        deferRender:    true,
+        scrollY:        550,
+        scrollCollapse: false,
+        scroller:       false,
+        pageLength:     10000,
+        lengthChange:   false,
+        paging:         false,
+        info:           false,
+        order:          [[ 0, "asc" ]],
+        columnDefs: columns
+    } );
+}
+
+function getNumber(age_group, test_name){
+    let num = 0;
+    for(let i = 0; i < fetched_samples.length; i++){
+        if(age_group == fetched_samples[i].age_group && fetched_samples[i].test == test_name){
+            num++;
+        }
+    }
+    return num;
+}
+
+let age_groups = [
+    "0-5 months",
+    "6-11 months",
+    "12-23 months",
+    "2-4 years",
+    "5-9 years",
+    "10-14 years",
+    "15-17 years",
+    "18-19 years",
+    "20-24 years",
+    "25-29 years",
+    "30-34 years",
+    "35-39 years",
+    "40-44 years",
+    "45-49 years",
+    "50 plus years"
+];
+
+
+function buildReportPatientLevel(){
+  finishBTN();
+  let formatted_data = [];
+
+  for(let num in selected_tests){
+    for (var i = 0; i < fetched_samples.length; i++) {
+        if(fetched_samples[i].test != selected_tests[num])
+            continue;
+
+        let gender = fetched_samples[i].gender;
+        let birthdate = moment(fetched_samples[i].birthdate).format('DD/MMM/YYYY');
+        let arv_number = fetched_samples[i].arv_number;
+        let person_id = fetched_samples[i].patient_id;
+        let order_date = moment(fetched_samples[i].order_date).format('DD/MMM/YYYY');
+        let result_date = moment(fetched_samples[i].result_date).format('DD/MMM/YYYY');
+        let test = fetched_samples[i].test;
+        let result = fetched_samples[i].result;
+        let modifier = fetched_samples[i].value_modifier;
+        let reason_for_test = fetched_samples[i].reason_for_test;
+        
+        formatted_data.push([arv_number, gender, 
+        birthdate, order_date, test, `${modifier} ${result}`,
+        result_date, reason_for_test]); 
+    }
+   }
+  
+  let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
+  inputFrame.style = "width: 95.5%; height: 90%;";
+  let report_table = `<table id="report">
+    <thead><tr>
+        <th>ARV#</th><th>Gender</th><th>Birthdate</th>
+        <th>Order date</th><th>Test</th>
+        <th>Result</th><th>Result date</th><th>Reason</th>
+    </tr><tbody></tbody></table>`;
+  inputFrame.innerHTML = report_table;
+
+  jQuery('#report').DataTable( {
+    fixedHeader:    true,
+    searching:      false,
+    data:           formatted_data,
+    deferRender:    true,
+    scrollY:        485,
+    scrollCollapse: false,
+    scroller:       false,
+    pageLength:     10000,
+    lengthChange:   false,
+    paging:         false,
+    order:          [[ 0, "asc" ]],
+    columnDefs: [
+      {"className": "dt-arv-numbers", "targets": 0},
+      {"className": "dt-gender", "targets": 1},
+      {"className": "dt-dates", "targets": 2},
+      {"className": "dt-dates", "targets": 3},
+      {"className": "dt-dates", "targets": 6},
+      {"className": "dt-tests", "targets": 4}
+    ]
+  } );
+}
+
+
+let href = window.location.href;
+let urlPath = new URL(href);
+var start_date = urlPath.searchParams.get("start_date");
+var end_date = urlPath.searchParams.get("end_date");
+var selected_tests = {};
+
+</script>
+
+<body id="mateme">
+    <div id="container">
+        <div id="content">
+    
+            <form>
+    
+               <input type="text" name="summary"
+                       tt_onLoad="__$('keyboard').style.display = 'none';fetchTestResults();"
+                       tt_pageStyleClass="NoControls" 
+                       helpText="Sample(s) drawn" 
+                       optional="false"/>
+    
+                <select helpText="Select report type"
+                        id="report_type" name="report_type"
+                        tt_pageStyleClass="NoKeyboard" tt_onLoad="">
+    
+                    <option value=''></option>
+                    <option value='Disaggregated'>Disaggregated</option>
+                    <option value='Patient level'>Patient level</option>
+                </select>
+    
+               <input type="text" name="summary"
+                       tt_onLoad="__$('keyboard').style.display = 'none';buildReport();"
+                       condition="__$('report_type').value == 'Disaggregated'"
+                       tt_pageStyleClass="NoControls" helpText="Lab test result(s)" optional="true"/>
+    
+               <input type="text" name="summary"
+                       tt_onLoad="__$('keyboard').style.display = 'none';buildReportPatientLevel();"
+                       condition="__$('report_type').value == 'Patient level'"
+                       tt_pageStyleClass="NoControls" helpText="Lab test result(s)" optional="true"/>
+    
+            </form>
+    
+        </div>
+    </div>
+
+    <div id="report-cover"></div>
+    <img src="/assets/images/formloader.gif" id="spinner" />
+    </body>
+    

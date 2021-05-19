@@ -1,0 +1,155 @@
+<style>
+
+    #reports-container {
+      display: table;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 10px;
+    }
+    
+    .reports-container-row {
+      display: table-row;
+    }
+    
+    .reports-container-cell {
+      display: table-cell;
+      border-style: solid;
+      
+      border: 1px solid #5ca6c4;
+      cursor: pointer;
+      box-shadow: inset 2px -4px 2px 0px;
+      background-color: #5480a8;
+      border-radius: 7px;
+      border: solid black 3px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      -moz-box-shadow: inset 0 0 10px #000000;
+      -webkit-box-shadow: inset 0 0 10px #5ca6c4;
+      box-shadow: inset 0 0 10px #000000;
+     
+      width: 300px; 
+      color: white;
+    }
+    
+    .report-icons {
+      height: 30px;
+      width:  30px;
+    }
+    
+    .info-table {
+      padding: 8px;
+      color: #fff;
+    }
+    
+    </style>
+    
+    <script>
+    
+      /*var reports = [
+        ["Cohort / Disaggregated","/apps/ART/assets/images/", "/apps/ART/views/cohort_tool/revised_cohort_menu.html"],
+        ["Cohort analyzer","","/report/summarize_cohort_report?type=summary"],
+        ["Cohort Survival Analysis","","/cohort_tool/revised_cohort_survival_analysis_menu"],
+        ["Supervision","","/clinic/supervision_tab"],
+        ["Data Cleaning Tools", "","/clinic/data_cleaning_tab"],
+    
+        ["Drug dispensation","","/report/drug_menu"],
+        ["Pre-ART","","/cohort_tool/cohort_menu?type=pre_art"],
+        ["View appointments","","/properties/select_date"],
+        ["Missed Appointments", "","/report/missed_appointment_duration?type=missed"],
+        ["Defaulted patients", "","/report/missed_appointment_duration?type=defaulter"],
+        //["Avg ART clinic duration for patients", "","/report/avg_waiting_time_for_art_patients"],
+        //["Flat tables reports", "","/cohort_tool/flat_tables_revised_cohort_menu"],
+        ["HTN Reports", "","/cohort_tool/select_htn_date"],
+        ["Fast Track Reports", "","/cohort_tool/select_fast_track_date"],
+        ["PEPFAR disaggregated report","","/report/missed_appointment_duration?type=disaggregated"],
+        ["DHA-Fast Track Reports", "","/cohort_tool/select_dha_fast_track_date"]
+      ];*/
+    
+    function reportGrouping(group) {
+      if(group == 'main'){
+        return [
+          ['MoH','/assets/images/login-logos/Malawi-Coat_of_arms_of_arms.png','MoH', 'function'],
+          ["Clinic", "","Clinic",'function'],
+          ["PEPFAR","/assets/images/login-logos/PEPFAR.png","PEPFAR",'function']
+        ];
+      }else if(group == 'MoH'){
+        return [
+        ];
+      }else if(group == 'Clinic'){
+        return [
+          ['Samples drawn','','/apps/LOS/views/reports/clinic/report_dates.html?report=samples_drawn', 'link'],
+          ["Test results","","/apps/LOS/views/reports/clinic/report_dates.html?report=vl_results",'link']
+        ];
+      }else if(group == 'PEPFAR'){
+          return [
+          ];
+      }else{
+      }  
+    }	
+    
+    function buildReportLinks(group) {
+      var counter = 0;
+      var row = null;
+      var reportContainer = document.getElementById("reports-container");
+      reportContainer.innerHTML = null;
+      
+      var reports = reportGrouping(group);
+    
+      for(var i = 0 ; i < reports.length ; i++){
+        if(counter == 0) {
+          row = document.createElement("div");
+          row.setAttribute("class","reports-container-row");
+          reportContainer.appendChild(row);
+        }
+    
+        var cell = document.createElement("div");
+        cell.setAttribute("class","reports-container-cell");
+        var table = document.createElement("table");
+        table.setAttribute("class","info-table");
+        var tr = document.createElement("tr");
+        table.appendChild(tr);
+        var td = document.createElement("td");
+        
+        var img = document.createElement("img");
+        var imgSRC = reports[i][1];
+        imgSRC = imgSRC.length < 1 ? "/apps/ART/assets/images/reports.png" : imgSRC;
+        img.setAttribute("src", imgSRC);
+        img.setAttribute("class","report-icons");
+        td.appendChild(img);
+        tr.appendChild(td);
+    
+        var td = document.createElement("td");
+        td.setAttribute("id", i.toString());
+        if(reports[i][3] == 'link'){
+          if(reports[i][2] != '#')
+            cell.setAttribute("onmousedown", "window.top.location='" + reports[i][2] + "'");
+        
+        }else{
+          cell.setAttribute("onmousedown", "buildReportLinks('" + reports[i][2] + "');");
+        }
+        td.innerHTML = reports[i][0];
+        tr.appendChild(td);
+    
+        cell.appendChild(table);
+        row.appendChild(cell)
+    
+        counter++;
+        if(counter == 3)
+          counter = 0;
+    
+      }
+    }
+    
+    function _testFunc(){
+       var newURL = window.location.protocol + "//" + window.location.host + reports[parseInt(this.id)][2];
+       window.top.location = newURL;
+    }
+    
+    </script>
+    
+    
+    <div id="reports-container"></div>
+    
+    <script>buildReportLinks('main');</script>
+    

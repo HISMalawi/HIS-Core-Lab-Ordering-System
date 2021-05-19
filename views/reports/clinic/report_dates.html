@@ -1,0 +1,208 @@
+
+<script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/touchScreenToolkit.js" defer="true"></script>
+<!-- <script type="text/javascript" src="/public/touchscreentoolkit/lib/javascripts/standard.js" defer="true"></script> -->
+<script type="text/javascript" src="/assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="/assets/js/moment.js"></script>
+
+<style>
+.tt_controls_start_month #keyboard, .tt_controls_end_month #keyboard {
+  display: none !important;
+}
+
+#tt_page_start_month .inputFrameClass, #tt_page_end_month .inputFrameClass {
+  height: 90% !important;
+  width: 96% !important;
+}
+
+#tt_page_start_month .options, #tt_page_end_month .options {
+  height: 90%;
+}
+
+</style>
+
+<script>
+  var tt_cancel_destination = "/";
+
+  function setAbsoluteMaxYear(){
+    var element = document.getElementById('touchscreenInput' + tstCurrentPage);
+    element.setAttribute("absoluteMax", (new Date().getFullYear()));
+    element.setAttribute("min", (new Date().getFullYear() - 100)); 
+    element.setAttribute("absoluteMin", (new Date().getFullYear() - 120)); 
+  }
+
+  function validateMonth(id) {
+    var nextBtn =  __$("nextButton");
+    nextBtn.setAttribute('onmousedown',"validateYearMonth('" + id + "');");
+    nextBtn.setAttribute('onclick',"");
+  }
+
+  function validateYearMonth(id) {
+    var year_id = (id == 'start_month' ? 'start_year' : 'end_year');
+    setYear = parseInt(document.getElementById(year_id).value);
+    if(setYear == (new Date().getFullYear())){
+      var element = document.getElementById('touchscreenInput' + tstCurrentPage);
+      var selectedMonth = parseInt(element.getAttribute('tstValue'));
+      var currMonth     = parseInt(new Date().getMonth() + 1);
+      if(selectedMonth > currMonth){
+        showMessage("Selected month is greater than current month");
+        return;
+      }
+    }
+
+    gotoNextPage();
+  }
+
+  function validateDay(){
+    date = new Date
+    currYear = date.getFullYear();
+    currDay = date.getDate();
+    currMonth = date.getMonth() + 1;
+    selected_month = parseInt(document.getElementsByName('person[birth_month]')[0].value)
+    selectYear = parseInt(document.getElementsByName('person[birth_year]')[0].value);
+    if (selectYear == currYear) {
+      if (selected_month == currMonth){
+        return $('touchscreenInput'+tstCurrentPage).setAttribute('absoluteMax',currDay);
+      }
+    }
+  }
+
+  function updateFinishButton() {
+    var nextButton = document.getElementById('nextButton');
+    nextButton.setAttribute('onmousedown', 'validateAllDates();');
+  }
+
+  function setUpPageForDateValidation() {
+    var nextBtn =  __$("nextButton");
+    nextBtn.setAttribute('onmousedown',"validateStartDate();");
+    nextBtn.setAttribute('onclick',"");
+  }
+
+  function validateStartDate() {
+    var start_year  = document.getElementById('start_year').value;
+    var start_month = document.getElementById('start_month').value;
+    var start_day   = document.getElementById('touchscreenInput' + tstCurrentPage).value;
+  
+    var start_date = start_year + '-' + start_month + '-' + start_day;
+    start_date = moment(start_date).format('YYYY-MM-DD');
+    
+    if(start_date > moment().format('YYYY-MM-DD')){
+      showMessage('Start date is more than current date');
+      return;
+    }
+    
+    gotoNextPage();
+  }
+
+  function validateAllDates() {
+    var start_year  = document.getElementById('start_year').value;
+    var start_month = document.getElementById('start_month').value;
+    var start_day   = document.getElementById('start_day').value;
+
+    var end_year  = document.getElementById('end_year').value;
+    var end_month = document.getElementById('end_month').value;
+    var end_day   = document.getElementById('touchscreenInput' + tstCurrentPage).value;
+
+    if(end_day.length < 1){
+      showMessage('Please enter end day');
+      return;
+    }
+    
+    var start_date  = moment(start_year + '-' + start_month + '-' + start_day).format('YYYY-MM-DD'); 
+    var end_date    = moment(end_year + '-' + end_month + '-' + end_day).format('YYYY-MM-DD'); 
+  
+    if(start_date > end_date){
+      showMessage('Start date is greater than end date');
+      return;
+    }
+
+    var url = window.location.href;
+    url = new URL(url);
+    var report = url.searchParams.get("report");
+
+    /*if(report == 'cohort' || report == 'survival_analysis'){
+      url = "/apps/ART/views/cohort_tool/";
+    }else{
+      url = '/apps/ART/views/reports/clinic/';
+    }*/
+
+    url = report + ".html?start_date=" + start_date;
+    url += '&end_date=' + end_date;
+
+    document.location = url;
+  }
+</script>
+
+<body id="mateme">
+  <div id="container">
+    <div id="content">
+
+      <form>
+        
+        <input type="text" name="start_year" id="start_year" 
+          helpText="Start year" field_type="number" 
+          absoluteMin="1900" min="1900" tt_onLoad="setAbsoluteMaxYear()" 
+          tt_pageStyleClass="Numeric NumbersOnly" />
+  
+        <select name="start_month" id="start_month" helpText="Start month" 
+          condition="$('start_year').value.toLowerCase() != 'unknown'" 
+          validationMessage="Please enter a valid date" tt_onUnLoad="" 
+          tt_onLoad=" validateMonth('start_month');__$(keyboard).style.display = none;">
+            <option value=""></option>
+            <option value="1">Jan</option>
+            <option value="2">Feb</option>
+            <option value="3">Mar</option>
+            <option value="4">Apr</option>
+            <option value="5">May</option>
+            <option value="6">Jun</option>
+            <option value="7">Jul</option>
+            <option value="8">Aug</option>
+            <option value="9">Sep</option>
+            <option value="10">Oct</option>
+            <option value="11">Nov</option>
+            <option value="12">Dec</option>
+          </select>
+
+      <input type="text" name="start_day" 
+        id="start_day" field_type="number" helpText="Start Day" 
+        condition="($('start_year').value != 'Unknown') && ($('start_month').value != 'Unknown')" 
+        tt_onLoad="getDayOfMonthPicker($('start_year').value, $('start_month').value);setUpPageForDateValidation();" 
+        tt_onUnLoad="" />
+
+        <input type="text" name="end_year" id="end_year" 
+          helpText="End year" field_type="number" 
+          absoluteMin="1900" min="1900" tt_onLoad="setAbsoluteMaxYear()" 
+          tt_pageStyleClass="Numeric NumbersOnly" />
+  
+        <select name="end_month" id="end_month" helpText="End month" 
+          condition="$('end_year').value.toLowerCase() != 'unknown'" 
+          validationMessage="Please enter a valid date" tt_onUnLoad="" 
+          tt_onLoad=" validateMonth('end_month');__$(keyboard).style.display = none;">
+            <option value=""></option>
+            <option value="1">Jan</option>
+            <option value="2">Feb</option>
+            <option value="3">Mar</option>
+            <option value="4">Apr</option>
+            <option value="5">May</option>
+            <option value="6">Jun</option>
+            <option value="7">Jul</option>
+            <option value="8">Aug</option>
+            <option value="9">Sep</option>
+            <option value="10">Oct</option>
+            <option value="11">Nov</option>
+            <option value="12">Dec</option>
+          </select>
+
+      <input type="text" name="end_day" 
+        id="end_day" field_type="number" helpText="End Day" 
+        condition="($('end_year').value != 'Unknown') && ($('end_month').value != 'Unknown')" 
+        tt_onLoad="getDayOfMonthPicker($('end_year').value, $('end_month').value);updateFinishButton();" 
+        tt_onUnLoad="" />
+
+
+
+      </form>
+
+   </div>
+ </div>
+</body>
+
