@@ -36,6 +36,7 @@
         width: 65px;
         height: 65px;
       }
+     
     </style>
 
     <link rel="stylesheet" href="/../../assets/css/datatables/jquery.dataTables.min.css" type="text/css">
@@ -59,6 +60,7 @@
         </tr>
       </thead>
     </table>
+
   </body>
 
   <script type="text/javascript" src="../assets/js/state.js"></script>
@@ -118,7 +120,7 @@
       //return `<button class="round-btns void-btns" 
         //onmousedown="voidOrder(${order_id});">X</button>`;
       return `<img src="/assets/images/delete.png" class="action-imgs" 
-        mousedown="voidOrder(${order_id});" />`;
+        onmousedown="voidOrder(${order_id});" />`;
     }
 
     function drawOrder(order_id){
@@ -126,7 +128,27 @@
     }
 
     function voidOrder(order_id){
+      window.parent.confirmLabOrderVoid(order_id);
+    }
 
+    function deleteOrder(order_id) {
+      let url = sessionStorage.apiProtocol+ '://' + sessionStorage.apiURL + ':' 
+      url += sessionStorage.apiPort + `/api/v1/lab/orders/${order_id}`;
+
+      var req = new XMLHttpRequest();
+      req.onreadystatechange = function () {
+          if (this.readyState == 4) {
+              if (this.status == 204) {
+                console.log(order_id)
+                window.parent.openOrders(event, 'Open');
+              }
+          }
+      };
+
+      req.open("DELETE", url, true);
+      req.setRequestHeader('Authorization', sessionStorage.getItem("authorization"));
+      req.setRequestHeader('Content-type', "application/json");
+      req.send(); 
     }
 
     let dataTable;
