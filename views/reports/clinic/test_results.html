@@ -116,6 +116,17 @@
     text-align: left;
     margin-left: 5px;
 }
+
+.warning {
+  background-color: red !important;
+  color: white !important;
+}
+
+.dt-age-gender {
+    text-align: center;
+    width: 10%;
+}
+
 </style>
 
 <script>
@@ -132,6 +143,9 @@ function showReport(){
 }
 
 function fetchTestResults(){
+    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
+    inputFrame.style = 'width: 95.5%; height: 90%;';
+
     selected_tests = {};
     let nextButton = document.getElementById('nextButton');
     nextButton.setAttribute("onmousedown", "showReport();");
@@ -140,9 +154,6 @@ function fetchTestResults(){
         buildSelectSamplePage();
         return;
     }
-
-    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
-    inputFrame.style = 'width: 95.5%; height: 90%;';
 
     let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
     url += "/lab_test_results?date=" + sessionStorage.sessionDate;
@@ -169,8 +180,15 @@ var fetched_samples;
 function loadSamples(){
 
     for(let i = 0; i < fetched_samples.length; i++){
-        if(collected_samples.indexOf(fetched_samples[i].test) < 0)
-            collected_samples.push(fetched_samples[i].test);
+//        if(collected_samples.indexOf(fetched_samples[i].test) < 0)
+  //          collected_samples.push(fetched_samples[i].test);
+
+        let measures = fetched_samples[i].measures;
+        for(let t = 0; t < measures.length; t++){
+            if(collected_samples.indexOf(measures[t].name) < 0)
+                collected_samples.push(measures[t].name)
+
+        }
 
     }
 
@@ -214,7 +232,7 @@ function assignCheckBox(concept_name, id) {
   return `
   <table class = "tests-boxes">
     <tr>
-      <td class="check-boxes"><img src="../../../assets/images/stop.png" 
+      <td class="check-boxes"><img src="/assets/images/stop.png" 
         class="checkbox-icons" id= "checkbox-${id}" /></td>
       <td class="concept-names">${concept_name}</td>
     </tr>
@@ -225,7 +243,7 @@ function selectTest(e){
   if(e.getAttribute("style").match(/lightblue/i)){
     e.setAttribute("style","background-color: white;");
     let img = $(`checkbox-${e.id}`);
-    img.setAttribute("src","../../../assets/images/stop.png");
+    img.setAttribute("src","/assets/images/stop.png");
 
     let selected_test_before = selected_tests;
     selected_tests  = {}
@@ -238,7 +256,7 @@ function selectTest(e){
   }else{
     e.setAttribute("style","background-color: lightblue;");
     let img = document.getElementById(`checkbox-${e.id}`);
-    img.setAttribute("src","../../../assets/images/checkmark.png");
+    img.setAttribute("src","/assets/images/checkmark.png");
     selected_tests[e.id] = e.getAttribute("concept_name");
   }
   
@@ -254,7 +272,7 @@ function finishBTN(){
 function buildReport(){
     finishBTN();
     let report_table = `<table id='report'><thead>`;
-    report_table += `<tr><th>&nbsp;</th><th>Age group</th>`;
+    report_table += `<tr><th>&nbsp;</th><th>Age group</th><th>Gender</th>`;
 
     for(let num in selected_tests) {
         report_table += `<th>${selected_tests[num]}</th>`;
@@ -262,14 +280,19 @@ function buildReport(){
 
     report_table += '</tr></thead><tbody>';
     let counter = 1;
-    for(let i =0; i < age_groups.length; i++){
-        report_table += `<tr>
-            <td>${counter++}</td>
-            <td>${age_groups[i]}</td>`;
-        for(let num in selected_tests) {
-            report_table += `<td>${getNumber(age_groups[i], selected_tests[num])}</td>`
+    let genders = ['F','M'];
+
+    for(let g = 0; g < genders.length; g++){
+        for(let i =0; i < age_groups.length; i++){
+            report_table += `<tr>
+                <td>${counter++}</td>
+                <td>${age_groups[i]}</td>
+                <td>${genders[g]}</td>`;
+            for(let num in selected_tests) {
+                report_table += `<td>${getNumber(age_groups[i], selected_tests[num], genders[g])}</td>`
+            }
+            report_table += '</tr>';
         }
-        report_table += '</tr>';
     }
     report_table += '</tbody></table>';
     let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
@@ -278,10 +301,11 @@ function buildReport(){
 
     let columns = [
         {"className": "dt-numbers", "targets": 0},
-        {"className": "dt-age-groups", "targets": 1}
+        {"className": "dt-age-groups", "targets": 1},
+        {"className": "dt-age-gender", "targets": 2}
     ];
 
-    counter = 2;
+    counter = 3;
     for(let num in selected_tests){
         columns.push({"className": "dt-test-numbers", "targets": (counter++)})
     }
@@ -302,11 +326,17 @@ function buildReport(){
     } );
 }
 
-function getNumber(age_group, test_name){
+function getNumber(age_group, test_name, gender){
     let num = 0;
     for(let i = 0; i < fetched_samples.length; i++){
-        if(age_group == fetched_samples[i].age_group && fetched_samples[i].test == test_name){
-            num++;
+        let measures = fetched_samples[i].measures;
+        if(fetched_samples[i].gender != gender)
+            continue;
+
+        for(let t = 0; t < measures.length; t++){
+            if(age_group == fetched_samples[i].age_group && measures[t].name == test_name){
+                num++;
+            }
         }
     }
     return num;
@@ -337,23 +367,26 @@ function buildReportPatientLevel(){
 
   for(let num in selected_tests){
     for (var i = 0; i < fetched_samples.length; i++) {
-        if(fetched_samples[i].test != selected_tests[num])
-            continue;
+        let measures = fetched_samples[i].measures;
+        for (let t = 0; t < measures.length; t++) {
+            if(measures[t].name != selected_tests[num])
+                continue;
 
-        let gender = fetched_samples[i].gender;
-        let birthdate = moment(fetched_samples[i].birthdate).format('DD/MMM/YYYY');
-        let arv_number = fetched_samples[i].arv_number;
-        let person_id = fetched_samples[i].patient_id;
-        let order_date = moment(fetched_samples[i].order_date).format('DD/MMM/YYYY');
-        let result_date = moment(fetched_samples[i].result_date).format('DD/MMM/YYYY');
-        let test = fetched_samples[i].test;
-        let result = fetched_samples[i].result;
-        let modifier = fetched_samples[i].value_modifier;
-        let reason_for_test = fetched_samples[i].reason_for_test;
-        
-        formatted_data.push([arv_number, gender, 
-        birthdate, order_date, test, `${modifier} ${result}`,
-        result_date, reason_for_test]); 
+            let gender = fetched_samples[i].gender;
+            let birthdate = moment(fetched_samples[i].birthdate).format('DD/MMM/YYYY');
+            let arv_number = fetched_samples[i].arv_number;
+            let person_id = fetched_samples[i].patient_id;
+            let order_date = moment(fetched_samples[i].order_date).format('DD/MMM/YYYY');
+            let result_date = moment(fetched_samples[i].result_date).format('DD/MMM/YYYY');
+            let test = measures[t].name;
+            let result = measures[t].value;
+            let modifier = measures[t].modifier;
+            let reason_for_test = fetched_samples[i].reason_for_test;
+            
+            formatted_data.push([arv_number, gender, 
+            birthdate, order_date, test, `${modifier} ${result}`,
+            result_date, reason_for_test]); 
+        }
     }
    }
   
@@ -386,7 +419,18 @@ function buildReportPatientLevel(){
       {"className": "dt-dates", "targets": 3},
       {"className": "dt-dates", "targets": 6},
       {"className": "dt-tests", "targets": 4}
-    ]
+    ],
+    "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+      if(aData[4].match(/viral load/i)){
+        if (aData[5].match(/=|>/) && parseFloat(aData[5].replace("=","").replace(">","")) >= 1000) {
+            let class_name = nRow.getAttribute("class");
+            nRow.setAttribute("class", `${class_name} warning`);
+        }else if (aData[5].replace(/\s+/g, '').toUpperCase() == ">LDL") {
+            let class_name = nRow.getAttribute("class");
+            nRow.setAttribute("class", `${class_name} warning`);
+        }
+      }
+    }
   } );
 }
 
@@ -408,7 +452,7 @@ var selected_tests = {};
                <input type="text" name="summary"
                        tt_onLoad="__$('keyboard').style.display = 'none';fetchTestResults();"
                        tt_pageStyleClass="NoControls" 
-                       helpText="Sample(s) drawn" 
+                       helpText="Available test(s) results" 
                        optional="false"/>
     
                 <select helpText="Select report type"

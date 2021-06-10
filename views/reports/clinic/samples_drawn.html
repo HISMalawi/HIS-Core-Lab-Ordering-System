@@ -83,7 +83,7 @@
 .dt-age-groups {
     text-align: left;
     margin-left: 10px;
-    width: 30%;
+    width: 15%;
 }
 
 #report th, #report td {
@@ -116,6 +116,12 @@
     text-align: left;
     margin-left: 5px;
 }
+
+.dt-age-genders {
+    width: 10%;
+    text-align: center;
+}
+
 </style>
 
 <script>
@@ -132,6 +138,9 @@ function showReport(){
 }
 
 function fetchSamplesDrawn(){
+    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
+    inputFrame.style = 'width: 95.5%; height: 90%;';
+
     selected_tests = {};
     let nextButton = document.getElementById('nextButton');
     nextButton.setAttribute("onmousedown", "showReport();");
@@ -141,8 +150,6 @@ function fetchSamplesDrawn(){
         return;
     }
 
-    let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
-    inputFrame.style = 'width: 95.5%; height: 90%;';
 
     let url = apiProtocol + "://" + apiURL + ":" + apiPort + "/api/v1";
     url += "/samples_drawn?date=" + sessionStorage.sessionDate;
@@ -169,9 +176,12 @@ var fetched_samples;
 function loadSamples(){
 
     for(let i = 0; i < fetched_samples.length; i++){
-        if(collected_samples.indexOf(fetched_samples[i].test) < 0)
-            collected_samples.push(fetched_samples[i].test);
+        let tests = fetched_samples[i].tests;
+        for(let t = 0; t < tests.length; t++){
+            if(collected_samples.indexOf(tests[t]) < 0)
+                collected_samples.push(tests[t]);
 
+        }
     }
 
     buildSelectSamplePage();
@@ -248,7 +258,7 @@ function selectTest(e){
 function buildReport(){
     finishBTN();
     let report_table = `<table id='report'><thead>`;
-    report_table += `<tr><th>&nbsp;</th><th>Age group</th>`;
+    report_table += `<tr><th>&nbsp;</th><th>Age group</th><th>Gender</td>`;
 
     for(let num in selected_tests) {
         report_table += `<th>${selected_tests[num]}</th>`;
@@ -256,15 +266,21 @@ function buildReport(){
 
     report_table += '</tr></thead><tbody>';
     let counter = 1;
-    for(let i =0; i < age_groups.length; i++){
-        report_table += `<tr>
-            <td>${counter++}</td>
-            <td>${age_groups[i]}</td>`;
-        for(let num in selected_tests) {
-            report_table += `<td>${getNumber(age_groups[i], selected_tests[num])}</td>`
+    let genders = ['F','M'];
+
+    for(let g = 0; g < genders.length; g++){
+        for(let i =0; i < age_groups.length; i++){
+            report_table += `<tr>
+                <td>${counter++}</td>
+                <td>${age_groups[i]}</td>
+                <td>${genders[g]}</td>`;
+            for(let num in selected_tests) {
+                report_table += `<td>${getNumber(age_groups[i], selected_tests[num], genders[g])}</td>`
+            }
+            report_table += '</tr>';
         }
-        report_table += '</tr>';
     }
+
     report_table += '</tbody></table>';
     let inputFrame = document.getElementById('inputFrame' + tstCurrentPage);
     inputFrame.style = "width: 95.5%; height: 90%;";
@@ -272,10 +288,11 @@ function buildReport(){
 
     let columns = [
         {"className": "dt-numbers", "targets": 0},
-        {"className": "dt-age-groups", "targets": 1}
+        {"className": "dt-age-groups", "targets": 1},
+        {"className": "dt-age-genders", "targets": 2}
     ];
 
-    counter = 2;
+    counter = 3;
     for(let num in selected_tests){
         columns.push({"className": "dt-test-numbers", "targets": (counter++)})
     }
@@ -296,11 +313,17 @@ function buildReport(){
     } );
 }
 
-function getNumber(age_group, test_name){
+function getNumber(age_group, test_name, gender){
     let num = 0;
     for(let i = 0; i < fetched_samples.length; i++){
-        if(age_group == fetched_samples[i].age_group && fetched_samples[i].test == test_name){
-            num++;
+        let tests = fetched_samples[i].tests;
+        if(gender != fetched_samples[i].gender)
+            continue;
+
+        for(let t =0; t < tests.length; t++){
+            if(age_group == fetched_samples[i].age_group && tests[t] == test_name){
+                num++;
+            }
         }
     }
     return num;
@@ -331,19 +354,22 @@ function buildReportPatientLevel(){
 
   for(let num in selected_tests){
     for (var i = 0; i < fetched_samples.length; i++) {
-        if(fetched_samples[i].test != selected_tests[num])
-            continue;
+        let tests = fetched_samples[i].tests;
+        for(let t = 0; t < tests.length; t++){
+            if(tests[t] != selected_tests[num])
+                continue;
 
-        let gender = fetched_samples[i].gender;
-        let birthdate = moment(fetched_samples[i].birthdate).format('DD/MMM/YYYY');
-        let arv_number = fetched_samples[i].arv_number;
-        let person_id = fetched_samples[i].patient_id;
-        let order_date = moment(fetched_samples[i].order_date).format('DD/MMM/YYYY');
-        let test = fetched_samples[i].test;
-        let reason_for_test = fetched_samples[i].reason_for_test;
-        
-        formatted_data.push([arv_number, gender, 
-        birthdate, order_date, test, reason_for_test]); 
+            let gender = fetched_samples[i].gender;
+            let birthdate = moment(fetched_samples[i].birthdate).format('DD/MMM/YYYY');
+            let arv_number = fetched_samples[i].arv_number;
+            let person_id = fetched_samples[i].patient_id;
+            let order_date = moment(fetched_samples[i].order_date).format('DD/MMM/YYYY');
+            let test = tests[t];
+            let reason_for_test = fetched_samples[i].reason_for_test;
+            
+            formatted_data.push([arv_number, gender, 
+            birthdate, order_date, test, reason_for_test]); 
+        }
     }
    }
   
@@ -402,7 +428,7 @@ var selected_tests = {};
                <input type="text" name="summary"
                        tt_onLoad="__$('keyboard').style.display = 'none';fetchSamplesDrawn();"
                        tt_pageStyleClass="NoControls" 
-                       helpText="Sample(s) drawn" 
+                       helpText="Test(s) requested" 
                        optional="false"/>
     
                 <select helpText="Select report type"
@@ -417,12 +443,12 @@ var selected_tests = {};
                <input type="text" name="summary"
                        tt_onLoad="__$('keyboard').style.display = 'none';buildReport();"
                        condition="__$('report_type').value == 'Disaggregated'"
-                       tt_pageStyleClass="NoControls" helpText="Sample(s) drawn" optional="true"/>
+                       tt_pageStyleClass="NoControls" helpText="Test(s) requested" optional="true"/>
     
                <input type="text" name="summary"
                        tt_onLoad="__$('keyboard').style.display = 'none';buildReportPatientLevel();"
                        condition="__$('report_type').value == 'Patient level'"
-                       tt_pageStyleClass="NoControls" helpText="Sample(s) drawn" optional="true"/>
+                       tt_pageStyleClass="NoControls" helpText="Test(s) requested" optional="true"/>
     
             </form>
     
