@@ -49,7 +49,6 @@
       <thead>
         <tr>
           <th>Accession#</th>
-          <th>Specimen</th>
           <th>Test</th>
           <th>&nbsp;</th>
         </tr>
@@ -91,7 +90,7 @@
       let order_id =  orders[i].order_id;
 
       for(let t = 0; t < tests.length; t++){
-        dataTable.row.add([accession_number, specimen, 
+        dataTable.row.add([accession_number, 
           tests[t].name, addReprintBTN(order_id)]).draw();
       }
     }
@@ -120,9 +119,8 @@
       paging:         false,
       columnDefs: [
         {"className": "accession-numbers-col", "targets": 0},
-        {"className": "specimen-col", "targets": 1},
-        {"className": "tests-col", "targets": 2},
-        {"className": "btns-col", "targets": 3}
+        {"className": "tests-col", "targets": 1},
+        {"className": "btns-col", "targets": 2}
       ]
     });
   }
