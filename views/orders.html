@@ -3,11 +3,11 @@
   <head>
     <style>
       #orders-table {
-        width: 95%;
+        width: 95% !important;
       }
 
       #orders-table_wrapper {
-        width: 100%;
+       /* width: 100%;*/
       }
       
       .accession-numbers-col {
@@ -118,6 +118,7 @@
       scroller:       false,
       lengthChange:   false,
       paging:         false,
+      //scrollY:        "75vh",
       columnDefs: [
         {"className": "accession-numbers-col", "targets": 0},
         {"className": "tests-col", "targets": 1},
